@@ -339,8 +339,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars ) {
 	vector<Muon> muons;
 	const ArrayVariableContainer<int> * m_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_idbits));
-	const ArrayVariableContainer<int> * m_nMatches = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_nMatches));
-	const ArrayVariableContainer<int> * m_validMuonHits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_validMuonHits));
+	const ArrayVariableContainer<float> * m_nMatches = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_nMatches));
+	const ArrayVariableContainer<float> * m_validMuonHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_validMuonHits));
 	
 	const SingleVariableContainer<int> * l1_id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l1_id));
 	if (fabs(l1_id->getVal()) == 13) {

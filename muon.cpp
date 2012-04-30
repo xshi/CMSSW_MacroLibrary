@@ -5,7 +5,7 @@ Muon::Muon( float px_, float py_, float pz_, float en_, float ptErr_, float ecal
 		float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
 		float ensf_, float ensferr_, float d0_, float dZ_, float trkpt_, float trketa_, float trkphi_,
 		float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
-		int idbits_, int nMatches_, int validMuonHits_ ) :
+		int idbits_, float nMatches_, float validMuonHits_ ) :
 		Lepton( px_, py_, pz_, en_, ptErr_, ecalIso_, hcalIso_, trkIso_, gIso_, chIso_, puchIso_, nhIso_,
 			id_, genid_, ensf_, ensferr_, d0_, dZ_, trkpt_, trketa_, trkphi_, trkchi2_,
 			trkValidPixelHits_, trkValidTrackerHits_, trkLostInnerHits_ ),
