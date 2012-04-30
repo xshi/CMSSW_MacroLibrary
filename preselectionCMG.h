@@ -14,10 +14,12 @@ class Options;
 class Muon;
 class Electron;
 class LeptonVariables;
+class ElectronVariables;
+class MuonVariables;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type );
-std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars);
-std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars);
+std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);
+std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars, const ElectronVariables & electronVars);
 void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);
 void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMin = 10);
 void selectSoftMuonsCMG(const Event & ev, std::vector<unsigned> & softmuons, const std::vector<unsigned> & muons20);
@@ -49,6 +51,7 @@ struct LeptonVariables {
 	unsigned l1_trkValidPixelHits;
 	unsigned l1_trkValidTrackerHits;
 	unsigned l1_trkLostInnerHits;
+	unsigned l1_pid;
 
 	unsigned l2_px;
 	unsigned l2_py;
@@ -75,7 +78,9 @@ struct LeptonVariables {
 	unsigned l2_trkValidPixelHits;
 	unsigned l2_trkValidTrackerHits;
 	unsigned l2_trkLostInnerHits;
+	unsigned l2_pid;
 
+	unsigned ln;
 	unsigned ln_px;
 	unsigned ln_py;
 	unsigned ln_pz;
@@ -101,8 +106,40 @@ struct LeptonVariables {
 	unsigned ln_trkValidPixelHits;
 	unsigned ln_trkValidTrackerHits;
 	unsigned ln_trkLostInnerHits;
+	unsigned ln_pid;
 
 	LeptonVariables(const Event & ev);
+};
+
+struct ElectronVariables {
+	unsigned e_idbits;
+	unsigned e_hoe;
+	unsigned e_dphiin;
+	unsigned e_detain;
+	unsigned e_sihih;
+	unsigned e_sipip;
+	unsigned e_r9;
+	unsigned e_sce;
+	unsigned e_sceta;
+	unsigned e_scphi;
+	unsigned e_e2x5max;
+	unsigned e_e1x5;
+	unsigned e_e5x5;
+	unsigned e_h2te;
+	unsigned e_h2tebc;
+	unsigned e_ooemoop;
+	unsigned e_fbrem;
+	unsigned e_eopin;
+
+	ElectronVariables(const Event & ev);
+};
+
+struct MuonVariables {
+	unsigned m_idbits;
+	unsigned m_nMatches;
+	unsigned m_validMuonHits;
+
+	MuonVariables(const Event & ev);
 };
 /*
 void selectPhotonsCMG(const Event & ev, std::vector<unsigned> & photons);
