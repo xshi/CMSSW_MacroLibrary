@@ -40,6 +40,15 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	LeptonVariables leptonVars( ev );
 	ElectronVariables electronVars( ev );
 	MuonVariables muonVars( ev );
+	JetVariables jetVars(ev);
+	const int * runP = ev.getSVA<int>("run"); 
+	const int * lumiP = ev.getSVA<int>("lumi"); 
+	const int * eventP = ev.getSVA<int>("event"); 
+	const float * metPtA = ev.getAVA<float>("met_pt");
+	const float * metPhiA = ev.getAVA<float>("met_phi");
+	const float * rhoP = ev.getSVA<float>("rho25");
+	const int * nvtxP = ev.getSVA<int>("nvtx"); 
+	const int * niP = ev.getSVA<int>("ngenITpu"); 
 
 	string outputFile( opt.checkStringOption("outpath") );
 	size_t pos = outputFile.find(".root");
@@ -142,9 +151,9 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		nvtx = -999;
 		ni = -999;
 
-		run = ev.getSVV<int>("run");
-		lumi = ev.getSVV<int>("lumi");
-		event = ev.getSVV<int>("event");
+		run = *runP;
+		lumi = *lumiP;
+		event = *eventP;
 
 //		cout << run << ":" << lumi << ":" << event << endl;
 //		if (isData) {
@@ -152,12 +161,12 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 //				continue;
 //		}
 
-		pfmet = ev.getAVV<float>("met_pt", 0);
+		pfmet = metPtA[0];
 
 		vector<Electron> electrons = buildElectronCollection(ev, leptonVars, electronVars);
 		vector<Muon> muons = buildMuonCollection(ev, leptonVars, muonVars);
 
-		float rho = ev.getSVV<float>("rho25");
+		float rho = *rhoP;
 
 		vector<Electron> selectedElectrons;
 		for (unsigned i = 0; i < electrons.size(); ++i) {
@@ -213,16 +222,9 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			   selectedLeptons[1] = &selectedMuons[1];
 			}
 		}
-		
-//		cout << selectedLeptons[0]->id << endl;
-//		cout << selectedLeptons[1]->id << endl;
 
 //		if ( selectedLeptons[0]->id != -selectedLeptons[1]->id )
 //			continue;
-
-//		cout << "# loose electrons : " << looseElectrons.size() << endl;
-//		cout << "# muons : " << selectedMuons.size() << endl;
-//		cout << "# loose muons : " << looseMuons.size() << endl;
 
 		nele = looseElectrons.size();
 		nmu = looseMuons.size();
@@ -255,7 +257,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		if (zmass < 76.1876 || zmass > 106.1876 || zpt < 55)
 			continue;
 
-		double metphi = ev.getAVV<float>("met_phi", 0);
+		double metphi = metPhiA[0];
 		double metPx = pfmet * cos( metphi );
 		double metPy = pfmet * sin( metphi );
 		double px = metPx + Zcand.Px();
@@ -266,25 +268,25 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		mt = (mt2 > 0) ? sqrt(mt2) : 0;
 
 		vector<unsigned> jets;
-		selectJetsCMG( ev, jets );
+		selectJetsCMG( ev, jetVars, jets );
 		njet = jets.size();
 
 		vector<unsigned> softjets;
-		selectJetsCMG( ev, softjets, 15 );
+		selectJetsCMG( ev, jetVars, softjets, 15 );
 		nsoftjet = softjets.size();
 
-		const float * jnPx = ev.getAVA<float>("jn_px");
-		const float * jnPy = ev.getAVA<float>("jn_py");
-		const float * jnPz = ev.getAVA<float>("jn_pz");
-		const float * jnEn = ev.getAVA<float>("jn_en");
-		const float * btag = ev.getAVA<float>("jn_btag1");
+		const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
+		const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
+		const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
+		const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
+		const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
 
 		maxJetBTag = -999;
 		for ( int j = 0; j < njet; ++j ) {
 			unsigned jetIdx = jets[j];
-			TLorentzVector jet( jnPx[jetIdx], jnPy[jetIdx], jnPz[jetIdx], jnEn[jetIdx] );
-			if ( btag[jetIdx] > maxJetBTag && fabs(jet.Eta()) < 2.4 )
-				maxJetBTag = btag[jetIdx];
+			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
+			if ( j_btag->getVal(jetIdx) > maxJetBTag && fabs(jet.Eta()) < 2.4 )
+				maxJetBTag = j_btag->getVal(jetIdx);
 		}
 		/*
 		unsigned temprun = 160956;
@@ -309,7 +311,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		minDeltaPhiJetMet = 999;
 		for ( int j = 0; j < njet; ++j ) {
 			unsigned jetIdx = jets[j];
-			TLorentzVector jet( jnPx[jetIdx], jnPy[jetIdx], jnPz[jetIdx], jnEn[jetIdx] );
+			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
 			double tempDelPhiJetMet = deltaPhi(metphi, jet.Phi());
 			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
 				minDeltaPhiJetMet = tempDelPhiJetMet;
@@ -317,15 +319,15 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		minDeltaPhiSoftJetMet = 999;
 		for ( int j = 0; j < nsoftjet; ++j ) {
 			unsigned jetIdx = softjets[j];
-			TLorentzVector jet( jnPx[jetIdx], jnPy[jetIdx], jnPz[jetIdx], jnEn[jetIdx] );
+			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
 			double tempDelPhiSoftJetMet = deltaPhi(metphi, jet.Phi());
 			if ( tempDelPhiSoftJetMet < minDeltaPhiSoftJetMet )
 				minDeltaPhiSoftJetMet = tempDelPhiSoftJetMet;
 		}
 
-		nvtx = ev.getSingleVariableValue<int>("nvtx");
+		nvtx = *nvtxP;
 
-		ni = ev.getSVV<int>("ngenITpu");
+		ni = *niP;
 		
 		smallTree->Fill();
 	}
@@ -598,16 +600,17 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	return electrons;
 }
 
-void selectJetsCMG(const Event & ev, vector<unsigned> & jets, double ptMin, double etaMax) {
-	const int nJets = ev.getSVV<int>("jn");
-	const float * jnPx = ev.getAVA<float>("jn_px");
-	const float * jnPy = ev.getAVA<float>("jn_py");
-	const float * jnPz = ev.getAVA<float>("jn_pz");
-	const float * jnEn = ev.getAVA<float>("jn_en");
+void selectJetsCMG(const Event & ev, const JetVariables & jetVars, vector<unsigned> & jets, double ptMin, double etaMax) {
+
+	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
+	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
+	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
+	const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
+	const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
 
 	jets.clear();
-	for ( int i = 0; i < nJets; ++i ) {
-		TLorentzVector jet(jnPx[i], jnPy[i], jnPz[i], jnEn[i]);
+	for ( int i = 0; i < jn->getVal(); ++i ) {
+		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
 		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax )
 			jets.push_back( i );
 	}
@@ -940,4 +943,13 @@ MuonVariables::MuonVariables(const Event & ev) {
 	m_idbits = ev.findVariableIndex("mn_idbits");
 	m_nMatches = ev.findVariableIndex("mn_nMatches");
 	m_validMuonHits = ev.findVariableIndex("mn_validMuonHits");
+}
+
+JetVariables::JetVariables(const Event & ev) {
+	jn = ev.findVariableIndex("jn");
+	j_px = ev.findVariableIndex("jn_px");
+	j_py = ev.findVariableIndex("jn_py");
+	j_pz = ev.findVariableIndex("jn_pz");
+	j_en = ev.findVariableIndex("jn_en");
+	j_btag = ev.findVariableIndex("jn_btag1");
 }

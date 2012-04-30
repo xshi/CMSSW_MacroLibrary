@@ -16,6 +16,7 @@ class Electron;
 class LeptonVariables;
 class ElectronVariables;
 class MuonVariables;
+class JetVariables;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type );
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);
@@ -23,7 +24,7 @@ std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVari
 void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);
 void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMin = 10);
 void selectSoftMuonsCMG(const Event & ev, std::vector<unsigned> & softmuons, const std::vector<unsigned> & muons20);
-void selectJetsCMG(const Event & ev, std::vector<unsigned> & jets, double ptMin = 30, double etaMax = 5);
+void selectJetsCMG(const Event & ev, const JetVariables & jetVars, std::vector<unsigned> & jets, double ptMin = 30, double etaMax = 5);
 
 struct LeptonVariables {
 	unsigned l1_px;
@@ -141,6 +142,18 @@ struct MuonVariables {
 
 	MuonVariables(const Event & ev);
 };
+
+struct JetVariables {
+	unsigned jn;
+	unsigned j_px;
+	unsigned j_py;
+	unsigned j_pz;
+	unsigned j_en;
+	unsigned j_btag;
+
+	JetVariables(const Event & ev);
+};
+	
 /*
 void selectPhotonsCMG(const Event & ev, std::vector<unsigned> & photons);
 bool triggerAcceptCMG( const Event & ev, double pt, double & weight );
