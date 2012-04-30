@@ -152,7 +152,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 
 		pfmet = ev.getAVV<float>("met_pt", 0);
 
-		vector<Electron> electrons = buildElectronCollection(ev);
+		vector<Electron> electrons = buildElectronCollection(ev, leptonVars);
 		vector<Muon> muons = buildMuonCollection(ev, leptonVars);
 
 		float rho = ev.getSVV<float>("rho25");
@@ -367,14 +367,11 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		const SingleVariableContainer<float> * trkValidTrackerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkValidTrackerHits));
 		const SingleVariableContainer<float> * trkLostInnerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkLostInnerHits));
 		int pid = ev.getSVV<int>("l1_pid");
-		int idbits = m_idbits[pid];
-		int nMatches = m_nMatches[pid];
-		int validMuonHits = m_validMuonHits[pid];
 
 		Muon tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), idbits, nMatches, validMuonHits);
+				trkLostInnerHits->getVal(), m_idbits[pid], m_nMatches[pid], m_validMuonHits[pid]);
 		muons.push_back(tmp);
 	}
 	if (fabs(ev.getSVV<int>("l2_id")) == 13) {
@@ -404,14 +401,11 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		const SingleVariableContainer<float> * trkValidTrackerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkValidTrackerHits));
 		const SingleVariableContainer<float> * trkLostInnerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkLostInnerHits));
 		int pid = ev.getSVV<int>("l2_pid");
-		int idbits = m_idbits[pid];
-		int nMatches = m_nMatches[pid];
-		int validMuonHits = m_validMuonHits[pid];
 
 		Muon tmp( px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), idbits, nMatches, validMuonHits);
+				trkLostInnerHits->getVal(), m_idbits[pid], m_nMatches[pid], m_validMuonHits[pid]);
 		muons.push_back(tmp);
 	}
 
@@ -456,7 +450,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 	return muons;
 }
 
-vector<Electron> buildElectronCollection(const Event & ev) {
+vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars) {
 	vector<Electron> electrons;
 	const int * e_idbits	= ev.getAVA<int>("en_idbits");
 	const float * e_hoe	= ev.getAVA<float>("en_hoe");
@@ -478,110 +472,112 @@ vector<Electron> buildElectronCollection(const Event & ev) {
 	const float * e_eopin = ev.getAVA<float>("en_eopin");
 	
 	if (fabs(ev.getSVV<int>("l1_id")) == 11) {
-		float px = ev.getSVV<float>("l1_px");
-		float py = ev.getSVV<float>("l1_py");
-		float pz = ev.getSVV<float>("l1_pz");
-		float en = ev.getSVV<float>("l1_en");
-		float ptErr = ev.getSVV<float>("l1_ptErr");
-		float ecalIso = ev.getSVV<float>("l1_ecalIso");
-		float hcalIso = ev.getSVV<float>("l1_hcalIso");
-		float trkIso = ev.getSVV<float>("l1_trkIso");
-		float gIso = ev.getSVV<float>("l1_gIso");
-		float chIso = ev.getSVV<float>("l1_chIso");
-		float puchIso = ev.getSVV<float>("l1_puchIso");
-		float nhIso = ev.getSVV<float>("l1_nhIso");
-		int id = ev.getSVV<int>("l1_id");
-		int genid = ev.getSVV<int>("l1_genid");
-		float ensf = ev.getSVV<float>("l1_ensf");
-		float ensferr = ev.getSVV<float>("l1_ensferr");
-		float d0 = ev.getSVV<float>("l1_d0");
-		float dZ = ev.getSVV<float>("l1_dZ");
-		float trkpt = ev.getSVV<float>("l1_trkpt");
-		float trketa = ev.getSVV<float>("l1_trketa");
-		float trkphi = ev.getSVV<float>("l1_trkphi");
-		float trkchi2 = ev.getSVV<float>("l1_trkchi2");
-		float trkValidPixelHits = ev.getSVV<float>("l1_trkValidPixelHits");
-		float trkValidTrackerHits = ev.getSVV<float>("l1_trkValidTrackerHits");
-		float trkLostInnerHits = ev.getSVV<float>("l1_trkLostInnerHits");
+		const SingleVariableContainer<float> * px = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_px));
+		const SingleVariableContainer<float> * py = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_py));
+		const SingleVariableContainer<float> * pz = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_pz));
+		const SingleVariableContainer<float> * en = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_en));
+		const SingleVariableContainer<float> * ptErr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ptErr));
+		const SingleVariableContainer<float> * ecalIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ecalIso));
+		const SingleVariableContainer<float> * hcalIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_hcalIso));
+		const SingleVariableContainer<float> * trkIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkIso));
+		const SingleVariableContainer<float> * gIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_gIso));
+		const SingleVariableContainer<float> * chIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_chIso));
+		const SingleVariableContainer<float> * puchIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_puchIso));
+		const SingleVariableContainer<float> * nhIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_nhIso));
+		const SingleVariableContainer<int> * id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l1_id));
+		const SingleVariableContainer<int> * genid = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l1_genid));
+		const SingleVariableContainer<float> * ensf = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ensf));
+		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ensferr));
+		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_d0));
+		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_dZ));
+		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkpt));
+		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trketa));
+		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkphi));
+		const SingleVariableContainer<float> * trkchi2 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkchi2));
+		const SingleVariableContainer<float> * trkValidPixelHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkValidPixelHits));
+		const SingleVariableContainer<float> * trkValidTrackerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkValidTrackerHits));
+		const SingleVariableContainer<float> * trkLostInnerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkLostInnerHits));
 		int pid = ev.getSVV<int>("l1_pid");
 
-		Electron tmp(px, py, pz, en, ptErr, ecalIso, hcalIso, trkIso, gIso, chIso, puchIso, nhIso, id, genid,
-				ensf, ensferr, d0, dZ, trkpt, trketa, trkphi, trkchi2, trkValidPixelHits,
-				trkValidTrackerHits, trkLostInnerHits, e_idbits[pid], e_hoe[pid], e_dphiin[pid], e_detain[pid],
+		Electron tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
+				trkLostInnerHits->getVal(), e_idbits[pid], e_hoe[pid], e_dphiin[pid], e_detain[pid],
 				e_sihih[pid], e_sipip[pid], e_r9[pid], e_sce[pid], e_sceta[pid], e_scphi[pid], e_e2x5max[pid],
 				e_e1x5[pid], e_e5x5[pid], e_h2te[pid], e_h2tebc[pid], e_ooemoop[pid], e_fbrem[pid], e_eopin[pid]);
 		electrons.push_back(tmp);
 	}
 	if (fabs(ev.getSVV<int>("l2_id")) == 11) {
-		float px = ev.getSVV<float>("l2_px");
-		float py = ev.getSVV<float>("l2_py");
-		float pz = ev.getSVV<float>("l2_pz");
-		float en = ev.getSVV<float>("l2_en");
-		float ptErr = ev.getSVV<float>("l2_ptErr");
-		float ecalIso = ev.getSVV<float>("l2_ecalIso");
-		float hcalIso = ev.getSVV<float>("l2_hcalIso");
-		float trkIso = ev.getSVV<float>("l2_trkIso");
-		float gIso = ev.getSVV<float>("l2_gIso");
-		float chIso = ev.getSVV<float>("l2_chIso");
-		float puchIso = ev.getSVV<float>("l2_puchIso");
-		float nhIso = ev.getSVV<float>("l2_nhIso");
-		int id = ev.getSVV<int>("l2_id");
-		int genid = ev.getSVV<int>("l2_genid");
-		float ensf = ev.getSVV<float>("l2_ensf");
-		float ensferr = ev.getSVV<float>("l2_ensferr");
-		float d0 = ev.getSVV<float>("l2_d0");
-		float dZ = ev.getSVV<float>("l2_dZ");
-		float trkpt = ev.getSVV<float>("l2_trkpt");
-		float trketa = ev.getSVV<float>("l2_trketa");
-		float trkphi = ev.getSVV<float>("l2_trkphi");
-		float trkchi2 = ev.getSVV<float>("l2_trkchi2");
-		float trkValidPixelHits = ev.getSVV<float>("l2_trkValidPixelHits");
-		float trkValidTrackerHits = ev.getSVV<float>("l2_trkValidTrackerHits");
-		float trkLostInnerHits = ev.getSVV<float>("l2_trkLostInnerHits");
+		const SingleVariableContainer<float> * px = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_px));
+		const SingleVariableContainer<float> * py = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_py));
+		const SingleVariableContainer<float> * pz = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_pz));
+		const SingleVariableContainer<float> * en = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_en));
+		const SingleVariableContainer<float> * ptErr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ptErr));
+		const SingleVariableContainer<float> * ecalIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ecalIso));
+		const SingleVariableContainer<float> * hcalIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_hcalIso));
+		const SingleVariableContainer<float> * trkIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkIso));
+		const SingleVariableContainer<float> * gIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_gIso));
+		const SingleVariableContainer<float> * chIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_chIso));
+		const SingleVariableContainer<float> * puchIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_puchIso));
+		const SingleVariableContainer<float> * nhIso = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_nhIso));
+		const SingleVariableContainer<int> * id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l2_id));
+		const SingleVariableContainer<int> * genid = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l2_genid));
+		const SingleVariableContainer<float> * ensf = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ensf));
+		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ensferr));
+		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_d0));
+		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_dZ));
+		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkpt));
+		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trketa));
+		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkphi));
+		const SingleVariableContainer<float> * trkchi2 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkchi2));
+		const SingleVariableContainer<float> * trkValidPixelHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkValidPixelHits));
+		const SingleVariableContainer<float> * trkValidTrackerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkValidTrackerHits));
+		const SingleVariableContainer<float> * trkLostInnerHits = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkLostInnerHits));
 		int pid = ev.getSVV<int>("l2_pid");
 
-		Electron tmp(px, py, pz, en, ptErr, ecalIso, hcalIso, trkIso, gIso, chIso, puchIso, nhIso, id, genid,
-				ensf, ensferr, d0, dZ, trkpt, trketa, trkphi, trkchi2, trkValidPixelHits,
-				trkValidTrackerHits, trkLostInnerHits, e_idbits[pid], e_hoe[pid], e_dphiin[pid], e_detain[pid],
+		Electron tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
+				trkLostInnerHits->getVal(), e_idbits[pid], e_hoe[pid], e_dphiin[pid], e_detain[pid],
 				e_sihih[pid], e_sipip[pid], e_r9[pid], e_sce[pid], e_sceta[pid], e_scphi[pid], e_e2x5max[pid],
 				e_e1x5[pid], e_e5x5[pid], e_h2te[pid], e_h2tebc[pid], e_ooemoop[pid], e_fbrem[pid], e_eopin[pid]);
 		electrons.push_back(tmp);
 	}
 
 	int ln = ev.getSVV<int>("ln");
-	const float * px = ev.getAVA<float>("ln_px");
-	const float * py = ev.getAVA<float>("ln_py");
-	const float * pz = ev.getAVA<float>("ln_pz");
-	const float * en = ev.getAVA<float>("ln_en");
-	const float * ptErr = ev.getAVA<float>("ln_ptErr");
-	const float * ecalIso = ev.getAVA<float>("ln_ecalIso");
-	const float * hcalIso = ev.getAVA<float>("ln_hcalIso");
-	const float * trkIso = ev.getAVA<float>("ln_trkIso");
-	const float * gIso = ev.getAVA<float>("ln_gIso");
-	const float * chIso = ev.getAVA<float>("ln_chIso");
-	const float * puchIso = ev.getAVA<float>("ln_puchIso");
-	const float * nhIso = ev.getAVA<float>("ln_nhIso");
-	const int * id = ev.getAVA<int>("ln_id");
-	const int * genid = ev.getAVA<int>("ln_genid");
-	const float * ensf = ev.getAVA<float>("ln_ensf");
-	const float * ensferr = ev.getAVA<float>("ln_ensferr");
-	const float * d0 = ev.getAVA<float>("ln_d0");
-	const float * dZ = ev.getAVA<float>("ln_dZ");
-	const float * trkpt = ev.getAVA<float>("ln_trkpt");
-	const float * trketa = ev.getAVA<float>("ln_trketa");
-	const float * trkphi = ev.getAVA<float>("ln_trkphi");
-	const float * trkchi2 = ev.getAVA<float>("ln_trkchi2");
-	const float * trkValidPixelHits = ev.getAVA<float>("ln_trkValidPixelHits");
-	const float * trkValidTrackerHits = ev.getAVA<float>("ln_trkValidTrackerHits");
-	const float * trkLostInnerHits = ev.getAVA<float>("ln_trkLostInnerHits");
+	const ArrayVariableContainer<float> * px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_px));
+	const ArrayVariableContainer<float> * py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_py));
+	const ArrayVariableContainer<float> * pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_pz));
+	const ArrayVariableContainer<float> * en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_en));
+	const ArrayVariableContainer<float> * ptErr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ptErr));
+	const ArrayVariableContainer<float> * ecalIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ecalIso));
+	const ArrayVariableContainer<float> * hcalIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_hcalIso));
+	const ArrayVariableContainer<float> * trkIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkIso));
+	const ArrayVariableContainer<float> * gIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_gIso));
+	const ArrayVariableContainer<float> * chIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_chIso));
+	const ArrayVariableContainer<float> * puchIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_puchIso));
+	const ArrayVariableContainer<float> * nhIso = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_nhIso));
+	const ArrayVariableContainer<int> * id = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(leptonVars.ln_id));
+	const ArrayVariableContainer<int> * genid = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(leptonVars.ln_genid));
+	const ArrayVariableContainer<float> * ensf = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ensf));
+	const ArrayVariableContainer<float> * ensferr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ensferr));
+	const ArrayVariableContainer<float> * d0 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_d0));
+	const ArrayVariableContainer<float> * dZ = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_dZ));
+	const ArrayVariableContainer<float> * trkpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkpt));
+	const ArrayVariableContainer<float> * trketa = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trketa));
+	const ArrayVariableContainer<float> * trkphi = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkphi));
+	const ArrayVariableContainer<float> * trkchi2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkchi2));
+	const ArrayVariableContainer<float> * trkValidPixelHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkValidPixelHits));
+	const ArrayVariableContainer<float> * trkValidTrackerHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkValidTrackerHits));
+	const ArrayVariableContainer<float> * trkLostInnerHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkLostInnerHits));
 	const int * pid = ev.getAVA<int>("ln_pid");
 
 	for (int i = 0; i < ln; ++i) {
-		if (fabs(id[i]) == 11) {
-			Electron tmp(px[i], py[i], pz[i], en[i], ptErr[i], ecalIso[i], hcalIso[i], trkIso[i], gIso[i],
-					chIso[i], puchIso[i], nhIso[i], id[i], genid[i], ensf[i], ensferr[i], d0[i], dZ[i],
-					trkpt[i], trketa[i], trkphi[i], trkchi2[i], trkValidPixelHits[i],
-					trkValidTrackerHits[i], trkLostInnerHits[i], e_idbits[pid[i]], e_hoe[pid[i]],
+		if (fabs(id->getVal(i)) == 11) {
+			Electron tmp(px->getVal(i), py->getVal(i), pz->getVal(i), en->getVal(i), ptErr->getVal(i), ecalIso->getVal(i), hcalIso->getVal(i), trkIso->getVal(i), gIso->getVal(i),
+				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i),
+				trkpt->getVal(i), trketa->getVal(i), trkphi->getVal(i), trkchi2->getVal(i), trkValidPixelHits->getVal(i), trkValidTrackerHits->getVal(i),
+				trkLostInnerHits->getVal(i), e_idbits[pid[i]], e_hoe[pid[i]],
 					e_dphiin[pid[i]], e_detain[pid[i]],	e_sihih[pid[i]], e_sipip[pid[i]], e_r9[pid[i]],
 					e_sce[pid[i]], e_sceta[pid[i]], e_scphi[pid[i]], e_e2x5max[pid[i]], e_e1x5[pid[i]],
 					e_e5x5[pid[i]], e_h2te[pid[i]], e_h2tebc[pid[i]], e_ooemoop[pid[i]], e_fbrem[pid[i]],

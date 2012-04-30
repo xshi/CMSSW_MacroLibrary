@@ -17,7 +17,7 @@ class LeptonVariables;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type );
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars);
-std::vector<Electron> buildElectronCollection(const Event & ev);
+std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars);
 void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);
 void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMin = 10);
 void selectSoftMuonsCMG(const Event & ev, std::vector<unsigned> & softmuons, const std::vector<unsigned> & muons20);
