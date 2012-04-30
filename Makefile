@@ -49,3 +49,4 @@ Dictionary.o : Dictionary.cpp $(HEADERS)
 
 clean :
 	rm -f *.o $(NAME)
+	rm -f Dictionary.*
