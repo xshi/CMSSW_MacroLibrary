@@ -22,7 +22,7 @@ void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMi
 void selectSoftMuonsCMG(const Event & ev, std::vector<unsigned> & softmuons, const std::vector<unsigned> & muons20);
 void selectJetsCMG(const Event & ev, std::vector<unsigned> & jets, double ptMin = 30, double etaMax = 5);
 
-struct LeptonVariables(const Event & ev) {
+struct LeptonVariables {
 	unsigned l1_px;
 	unsigned l1_py;
 	unsigned l1_pz;
@@ -102,7 +102,7 @@ struct LeptonVariables(const Event & ev) {
 	unsigned ln_trkLostInnerHits;
 
 	LeptonVariables(const Event & ev);
-}
+};
 /*
 void selectPhotonsCMG(const Event & ev, std::vector<unsigned> & photons);
 bool triggerAcceptCMG( const Event & ev, double pt, double & weight );
