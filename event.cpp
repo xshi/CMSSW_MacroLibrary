@@ -163,6 +163,12 @@ unsigned Event::findVariableIndex(const std::string & name) const {
 		return location;
 	return -1;
 }
+		
+const VariableContainer * Event::getVariable(unsigned i) const {
+	if (i < variables.size())
+		return variables[i];
+	return 0;
+}
 
 //==================================================================================
 

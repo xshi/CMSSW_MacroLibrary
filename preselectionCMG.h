@@ -13,9 +13,10 @@ class Options;
 //class TriggerInfo;
 class Muon;
 class Electron;
+class LeptonVariables;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type );
-std::vector<Muon> buildMuonCollection(const Event & ev);
+std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars);
 std::vector<Electron> buildElectronCollection(const Event & ev);
 void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);
 void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMin = 10);

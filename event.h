@@ -85,6 +85,7 @@ class Event {
 		~Event();
 		VariableContainer * findVariable(const std::string & name) const;
 		unsigned findVariableIndex(const std::string & name) const;
+		const VariableContainer * getVariable(unsigned i) const;
 
 		template <typename T> T getSingleVariableValue(const std::string & name) const {
 			VariableContainer * tempPtr = findVariable(name);
