@@ -58,7 +58,7 @@ template <typename T> class ArrayVariableContainer : public VariableContainer {
 		}
 		T getVal(unsigned i) const {
 			if (i >= size)
-				throw "ERROR: ArrayVariableContainer::getVal : Index out of bounds!";
+				throw std::string("ERROR: ArrayVariableContainer::getVal : Index out of bounds!");
 			return varPtr[i];
 		}
 		T * getPtr() const {
@@ -94,9 +94,9 @@ class Event {
 				if (varPtr)
 					return varPtr->getVal();
 				else
-					throw "ERROR: Event::getSingleVariableValue : Variable name (" + name + ") does not match expected type!";
+					throw std::string("ERROR: Event::getSingleVariableValue : Variable name (" + name + ") does not match expected type!");
 			} else
-				throw "ERROR: Event::getSingleVariableValue : Variable (" + name + ") can't be found!";
+				throw std::string("ERROR: Event::getSingleVariableValue : Variable (" + name + ") can't be found!");
 		}
 		
 		template <typename T> inline T getSVV(const std::string & name) const {
@@ -124,9 +124,9 @@ class Event {
 				if (varPtr)
 					return varPtr->getVal(i);
 				else
-					throw "ERROR: Event::getArrayVariableValue : Variable name (" + name + ") does not match expected type!";
+					throw std::string("ERROR: Event::getArrayVariableValue : Variable name (" + name + ") does not match expected type!");
 			} else
-				throw "ERROR: Event::getArrayVariableValue : Variable (" + name + ") can't be found!";
+				throw std::string("ERROR: Event::getArrayVariableValue : Variable (" + name + ") can't be found!");
 		}
 
 		template <typename T> inline T getAVV(const std::string & name, unsigned i) const {

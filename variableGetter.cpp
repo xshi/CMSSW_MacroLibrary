@@ -22,7 +22,7 @@ VariableGetter::VariableGetter(string hName, const Event & ev) {
 	} else if ( (valueD_ = ev.getSingleVariableAddress<double>(hName)) ) {
 		type_ = DOUBLE;
 	} else
-		throw "ERROR: VariableGetter::VariableGetter : Don't know what to do with this variable: " + hName + "!";
+		throw string("ERROR: VariableGetter::VariableGetter : Don't know what to do with this variable: " + hName + "!");
 }
 
 double VariableGetter::getValue() const {
