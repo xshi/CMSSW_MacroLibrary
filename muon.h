@@ -17,13 +17,15 @@ class Muon : public Lepton {
 
 		bool isTrackerMuon() const;
 		bool isGlobalMuon() const;
+		bool isPFMuon() const;
 		bool isTMOneStationTight() const;
 		bool isLooseMuon() const;
+		bool isSoftMuon() const;
 		bool isTightMuon() const;
 		bool isTrackIsolatedLoose() const;
 		bool isTrackIsolatedTight() const;
-		bool isPFIsolatedLoose(double effArea, double rho) const;
-		bool isPFIsolatedTight(double effArea, double rho) const;
+		bool isPFIsolatedLoose() const;
+		bool isPFIsolatedTight() const;
 };
 
 #endif // MUON_H

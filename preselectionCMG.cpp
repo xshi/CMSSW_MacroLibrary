@@ -189,7 +189,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		for (unsigned i = 0; i < muons.size(); ++i) {
 			TLorentzVector lv = muons[i].lorentzVector();
 			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[i].isTightMuon()
-					&& muons[i].isPFIsolatedTight(Electron::effAreaMC(lv.Eta()), rho) ) {
+					&& muons[i].isPFIsolatedTight() ) {
 				selectedMuons.push_back(muons[i]);
 			}
 		}
@@ -198,7 +198,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		for (unsigned i = 0; i < muons.size(); ++i) {
 			TLorentzVector lv = muons[i].lorentzVector();
 			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[i].isTightMuon()
-					&& muons[i].isPFIsolatedTight(Electron::effAreaMC(lv.Eta()), rho) )
+					&& muons[i].isPFIsolatedTight() )
 				looseMuons.push_back(muons[i]);
 		}
 

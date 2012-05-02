@@ -17,5 +17,12 @@ T min( const std::vector<T> values) {
 			min = values[i];
 	return min;
 }
+template <typename T>
+T max(T a, T b) {
+	if (a > b)
+		return a;
+	else
+		return b;
+}
 
 #endif // EVENT_H

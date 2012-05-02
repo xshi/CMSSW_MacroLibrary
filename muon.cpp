@@ -1,4 +1,5 @@
 #include "muon.h"
+#include "toolbox.h"
 #include "TLorentzVector.h"
 
 Muon::Muon( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
@@ -22,12 +23,22 @@ bool Muon::isGlobalMuon() const {
 	return (0x1 << 5) & idbits;
 }
 
+bool Muon::isPFMuon() const {
+	return true;
+}
+
 bool Muon::isLooseMuon() const {
 	return isTrackerMuon() || isGlobalMuon();
 }
 
+bool Muon::isSoftMuon() const {
+	if (isTrackerMuon() && trkValidTrackerHits > 10 && trkValidPixelHits > 0 && trkchi2 < 1.8 && d0 < 3.0 && dZ < 30.0)
+		return true;
+	return false;
+}
+
 bool Muon::isTightMuon() const {
-	if (isGlobalMuon() && trkchi2 < 10.0 && validMuonHits > 0 && nMatches > 1 && d0 < 0.2 && dZ < 0.5
+	if (isGlobalMuon() && isPFMuon() && trkchi2 < 10.0 && validMuonHits > 0 && nMatches > 1 && d0 < 0.2 && dZ < 0.5
 			&& trkValidPixelHits > 0 && trkValidTrackerHits > 10)
 		return true;
 	return false;
@@ -41,12 +52,12 @@ bool Muon::isTrackIsolatedTight() const {
 	return trkIso / lorentzVector().Pt() < 0.05;
 }
 
-bool Muon::isPFIsolatedLoose(double effArea, double rho) const {
-	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effArea * rho;
+bool Muon::isPFIsolatedLoose() const {
+	double pfIsol = (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
 	return pfIsol < 0.2;
 }
 
-bool Muon::isPFIsolatedTight(double effArea, double rho) const {
-	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effArea * rho;
+bool Muon::isPFIsolatedTight() const {
+	double pfIsol = (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
 	return pfIsol < 0.12;
 }
