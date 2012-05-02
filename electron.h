@@ -40,6 +40,9 @@ class Electron : public Lepton {
 		bool isPFIsolatedLoose(double rho) const;
 		bool isPFIsolatedMedium(double rho) const;
 		bool isPFIsolatedTight(double rho) const;
+		bool passesVetoID() const;
+		bool passesLooseID() const;
+		bool passesMediumID() const;
 		bool passesTightID() const;
 };
 

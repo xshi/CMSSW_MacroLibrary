@@ -82,49 +82,100 @@ double Electron::effAreaDATA(double eta) {
 
 bool Electron::isPFIsolatedVeto(double rho) const {
 	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effAreaMC(lorentzVector().Eta()) * rho;
-//	if (isEB())
+	if (isEB())
 		return pfIsol < 0.15;
-//	else if (isEE())
-//		return pfIsol < 0.15;
-//	return false;
+	else if (isEE())
+		return pfIsol < 0.15;
+	return false;
 }
 
 bool Electron::isPFIsolatedLoose(double rho) const {
-	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effAreaMC(lorentzVector().Eta()) * rho;
-//	if (isEB())
+	TLorentzVector lv = lorentzVector();
+	double pfIsol = (chIso + nhIso + gIso) / lv.Pt() - effAreaMC(lv.Eta()) * rho;
+	if (isEB())
 		return pfIsol < 0.15;
-//	else if (isEE())
-//		return pfIsol < 0.15;
-//	return false;
+	else if (isEE()) {
+		if (lv.Pt() > 20)
+			return pfIsol < 0.15;
+		else
+			return pfIsol < 0.10;
+	}
+	return false;
 }
 
 bool Electron::isPFIsolatedMedium(double rho) const {
-	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effAreaMC(lorentzVector().Eta()) * rho;
-//	if (isEB())
+	TLorentzVector lv = lorentzVector();
+	double pfIsol = (chIso + nhIso + gIso) / lv.Pt() - effAreaMC(lv.Eta()) * rho;
+	if (isEB())
 		return pfIsol < 0.15;
-//	else if (isEE())
-//		return pfIsol < 0.15;
-//	return false;
+	else if (isEE()) {
+		if (lv.Pt() > 20)
+			return pfIsol < 0.15;
+		else
+			return pfIsol < 0.10;
+	}
+	return false;
 }
 
 bool Electron::isPFIsolatedTight(double rho) const {
-	double pfIsol = (chIso + nhIso + gIso) / lorentzVector().Pt() - effAreaMC(lorentzVector().Eta()) * rho;
-//	if (isEB())
+	TLorentzVector lv = lorentzVector();
+	double pfIsol = (chIso + nhIso + gIso) / lv.Pt() - effAreaMC(lv.Eta()) * rho;
+	if (isEB())
 		return pfIsol < 0.10;
-//	else if (isEE())
-//		return pfIsol < 0.10;
-//	return false;
+	else if (isEE()) {
+		if (lv.Pt() > 20)
+			return pfIsol < 0.10;
+		else
+			return pfIsol < 0.07;
+	}
+	return false;
+}
+
+bool Electron::passesVetoID() const {
+	if (isEB()) {
+		if (detain < 0.007 && dphiin < 0.8 && sihih < 0.01 && hoe < 0.15 && d0 < 0.04 && dZ < 0.2)
+			return true;
+	} else if (isEE()) {
+		if (detain < 0.01 && dphiin < 0.7 && sihih < 0.03 && d0 < 0.04 && dZ < 0.4)
+			return true;
+	}
+	return false;
+}
+
+bool Electron::passesLooseID() const {
+	if (isEB()) {
+		if (detain < 0.007 && dphiin < 0.15 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.2
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
+			return true;
+	} else if (isEE()) {
+		if (detain < 0.009 && dphiin < 0.10 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.2
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
+			return true;
+	}
+	return false;
+}
+
+bool Electron::passesMediumID() const {
+	if (isEB()) {
+		if (detain < 0.004 && dphiin < 0.06 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
+			return true;
+	} else if (isEE()) {
+		if (detain < 0.007 && dphiin < 0.06 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
+			return true;
+	}
+	return false;
 }
 
 bool Electron::passesTightID() const {
 	if (isEB()) {
 		if (detain < 0.004 && dphiin < 0.03 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits == 0)
-
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
 			return true;
 	} else if (isEE()) {
 		if (detain < 0.005 && dphiin < 0.02 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits == 0)
+				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
 			return true;
 	}
 	return false;
