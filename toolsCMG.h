@@ -131,4 +131,15 @@ struct JetVariables {
 	JetVariables(const Event & ev);
 };
 
+struct MCVariables {
+	unsigned mcparticles;
+	unsigned mc_px;
+	unsigned mc_py;
+	unsigned mc_pz;
+	unsigned mc_en;
+	unsigned mc_id;
+
+	MCVariables(const Event & ev);
+};
+
 #endif // TOOLSCMS_H

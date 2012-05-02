@@ -120,3 +120,12 @@ JetVariables::JetVariables(const Event & ev) {
 	j_en = ev.findVariableIndex("jn_en");
 	j_btag = ev.findVariableIndex("jn_btag1");
 }
+
+MCVariables::MCVariables(const Event & ev) {
+	mcparticles = ev.findVariableIndex("mcparticles");
+	mc_px = ev.findVariableIndex("mc_px");
+	mc_py = ev.findVariableIndex("mc_py");
+	mc_pz = ev.findVariableIndex("mc_pz");
+	mc_en = ev.findVariableIndex("mc_en");
+	mc_id = ev.findVariableIndex("mc_id");
+}
