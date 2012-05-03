@@ -110,6 +110,9 @@ MuonVariables::MuonVariables(const Event & ev) {
 	m_idbits = ev.findVariableIndex("mn_idbits");
 	m_nMatches = ev.findVariableIndex("mn_nMatches");
 	m_validMuonHits = ev.findVariableIndex("mn_validMuonHits");
+	m_innerTrackChi2 = ev.findVariableIndex("mn_innerTrackChi2");
+	m_trkLayersWithMeasurement = ev.findVariableIndex("mn_trkLayersWithMeasurement");
+	m_pixelLayersWithMeasurement = ev.findVariableIndex("mn_pixelLayersWithMeasurement");
 }
 
 JetVariables::JetVariables(const Event & ev) {

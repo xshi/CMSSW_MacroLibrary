@@ -344,6 +344,9 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 	const ArrayVariableContainer<int> * m_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_idbits));
 	const ArrayVariableContainer<float> * m_nMatches = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_nMatches));
 	const ArrayVariableContainer<float> * m_validMuonHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_validMuonHits));
+	const ArrayVariableContainer<float> * m_innerTrackChi2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_innerTrackChi2));
+	const ArrayVariableContainer<float> * m_trkLayersWithMeasurement = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_trkLayersWithMeasurement));
+	const ArrayVariableContainer<float> * m_pixelLayersWithMeasurement = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_pixelLayersWithMeasurement));
 	
 	const SingleVariableContainer<int> * l1_id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l1_id));
 	if (fabs(l1_id->getVal()) == 13) {
@@ -377,7 +380,8 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		Muon tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid));
+				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 		muons.push_back(tmp);
 	}
 	
@@ -413,7 +417,8 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		Muon tmp( px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid));
+				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 		muons.push_back(tmp);
 	}
 
@@ -452,7 +457,8 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 			Muon tmp(px->getVal(i), py->getVal(i), pz->getVal(i), en->getVal(i), ptErr->getVal(i), ecalIso->getVal(i), hcalIso->getVal(i), trkIso->getVal(i), gIso->getVal(i),
 				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i),
 				trkpt->getVal(i), trketa->getVal(i), trkphi->getVal(i), trkchi2->getVal(i), trkValidPixelHits->getVal(i), trkValidTrackerHits->getVal(i),
-				trkLostInnerHits->getVal(i), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid));
+				trkLostInnerHits->getVal(i), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 			muons.push_back(tmp);
 		}
 	}
