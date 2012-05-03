@@ -122,7 +122,7 @@ JetVariables::JetVariables(const Event & ev) {
 }
 
 MCVariables::MCVariables(const Event & ev) {
-	mcparticles = ev.findVariableIndex("mcparticles");
+	mcparticles = ev.findVariableIndex("nmcparticles");
 	mc_px = ev.findVariableIndex("mc_px");
 	mc_py = ev.findVariableIndex("mc_py");
 	mc_pz = ev.findVariableIndex("mc_pz");
