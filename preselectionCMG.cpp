@@ -485,6 +485,14 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	const ArrayVariableContainer<float> * e_ooemoop = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_ooemoop));
 	const ArrayVariableContainer<float> * e_fbrem = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_fbrem));
 	const ArrayVariableContainer<float> * e_eopin = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_eopin));
+	const ArrayVariableContainer<float> * e_dEtaCalo = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_dEtaCalo));
+	const ArrayVariableContainer<float> * e_kfchi2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_kfchi2));
+	const ArrayVariableContainer<float> * e_kfhits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_kfhits));
+	const ArrayVariableContainer<float> * e_etawidth = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_etawidth));
+	const ArrayVariableContainer<float> * e_phiwidth = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_phiwidth));
+	const ArrayVariableContainer<float> * e_e1x5e5x5 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_e1x5e5x5));
+	const ArrayVariableContainer<float> * e_preShowerOverRaw = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_preShowerOverRaw));
+	const ArrayVariableContainer<float> * e_eopout = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(electronVars.e_eopout));
 	
 	const SingleVariableContainer<int> * l1_id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l1_id));
 	if (fabs(l1_id->getVal()) == 11) {
@@ -520,7 +528,9 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), e_idbits->getVal(pid), e_hoe->getVal(pid), e_dphiin->getVal(pid), e_detain->getVal(pid),
 				e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid), e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid),
-				e_e1x5->getVal(pid), e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid), e_eopin->getVal(pid));
+				e_e1x5->getVal(pid), e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid),
+				e_eopin->getVal(pid), e_dEtaCalo->getVal(pid), e_kfchi2->getVal(pid), e_kfhits->getVal(pid), e_etawidth->getVal(pid), e_phiwidth->getVal(pid),
+				e_e1x5e5x5->getVal(pid), e_preShowerOverRaw->getVal(pid), e_eopout->getVal(pid) );
 		electrons.push_back(tmp);
 	}
 	const SingleVariableContainer<int> * l2_id = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l2_id));
@@ -557,7 +567,9 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), e_idbits->getVal(pid), e_hoe->getVal(pid), e_dphiin->getVal(pid), e_detain->getVal(pid),
 				e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid), e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid),
-				e_e1x5->getVal(pid), e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid), e_eopin->getVal(pid));
+				e_e1x5->getVal(pid), e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid),
+				e_eopin->getVal(pid), e_dEtaCalo->getVal(pid), e_kfchi2->getVal(pid), e_kfhits->getVal(pid), e_etawidth->getVal(pid), e_phiwidth->getVal(pid),
+				e_e1x5e5x5->getVal(pid), e_preShowerOverRaw->getVal(pid), e_eopout->getVal(pid));
 		electrons.push_back(tmp);
 	}
 
@@ -600,7 +612,8 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 					e_dphiin->getVal(pid), e_detain->getVal(pid),	e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid),
 					e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid), e_e1x5->getVal(pid),
 					e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid),
-					e_eopin->getVal(pid));
+					e_eopin->getVal(pid), e_dEtaCalo->getVal(pid), e_kfchi2->getVal(pid), e_kfhits->getVal(pid), e_etawidth->getVal(pid), e_phiwidth->getVal(pid),
+					e_e1x5e5x5->getVal(pid), e_preShowerOverRaw->getVal(pid), e_eopout->getVal(pid));
 			electrons.push_back(tmp);
 		}
 	}

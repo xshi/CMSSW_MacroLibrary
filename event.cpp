@@ -167,6 +167,8 @@ unsigned Event::findVariableIndex(const std::string & name) const {
 const VariableContainer * Event::getVariable(unsigned i) const {
 	if (i < variables.size())
 		return variables[i];
+	else
+		throw string("ERROR: Event::getVariable(unsigned i) : Index out of bounds!");
 	return 0;
 }
 

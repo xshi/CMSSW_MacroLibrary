@@ -23,6 +23,14 @@ class Electron : public Lepton {
 		float ooemoop;
 		float fbrem;
 		float eopin;
+		float dEtaCalo;
+		float kfchi2;
+		float kfhits;
+		float etawidth;
+		float phiwidth;
+		float e1x5e5x5;
+		float preShowerOverRaw;
+		float eopout;
 
 		Electron( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
 				float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
@@ -30,7 +38,9 @@ class Electron : public Lepton {
 				float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
 				int idbits_, float hoe_, float dphiin_, float detain_, float sihih_, float sipip_, float r9_,
 				float sce_, float sceta_, float scphi_, float e2x5max_, float e1x5_, float e5x5_, float h2te_,
-				float h2tebc_, float ooemoop_, float fbrem_, float eopin_ );
+				float h2tebc_, float ooemoop_, float fbrem_, float eopin_, float dEtaCalo_, float kfchi2_,
+				float kfhits_, float etawidth_, float phiwidth_, float e1x5e5x5_, float preShowerOverRaw_,
+				float eopout_ );
 		bool isEB() const;
 		bool isEE() const;
 		bool isInCrack() const;
@@ -44,6 +54,7 @@ class Electron : public Lepton {
 		bool passesLooseID() const;
 		bool passesMediumID() const;
 		bool passesTightID() const;
+		bool passesMvaIdWP80(double mvaVal);
 };
 
 #endif // ELECTRON_H

@@ -108,6 +108,14 @@ struct ElectronVariables {
 	unsigned e_ooemoop;
 	unsigned e_fbrem;
 	unsigned e_eopin;
+	unsigned e_dEtaCalo;
+	unsigned e_kfchi2;
+	unsigned e_kfhits;
+	unsigned e_etawidth;
+	unsigned e_phiwidth;
+	unsigned e_e1x5e5x5;
+	unsigned e_preShowerOverRaw;
+	unsigned e_eopout;
 
 	ElectronVariables(const Event & ev);
 };

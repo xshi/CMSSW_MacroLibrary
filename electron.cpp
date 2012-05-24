@@ -8,8 +8,10 @@ Electron::Electron( float px_, float py_, float pz_, float en_, float ptErr_, fl
 		float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
 		int idbits_, float hoe_, float dphiin_, float detain_, float sihih_, float sipip_, float r9_,
 		float sce_, float sceta_, float scphi_, float e2x5max_, float e1x5_, float e5x5_, float h2te_,
-		float h2tebc_, float ooemoop_, float fbrem_, float eopin_ ) :
-		Lepton( px_, py_, pz_, en_, ptErr_, ecalIso_, hcalIso_, trkIso_, gIso_, chIso_, puchIso_, nhIso_,
+		float h2tebc_, float ooemoop_, float fbrem_, float eopin_, float dEtaCalo_, float kfchi2_,
+		float kfhits_, float etawidth_, float phiwidth_, float e1x5e5x5_, float preShowerOverRaw_,
+		float eopout_ ) :
+	Lepton( px_, py_, pz_, en_, ptErr_, ecalIso_, hcalIso_, trkIso_, gIso_, chIso_, puchIso_, nhIso_,
 			id_, genid_, ensf_, ensferr_, d0_, dZ_, trkpt_, trketa_, trkphi_, trkchi2_,
 			trkValidPixelHits_, trkValidTrackerHits_, trkLostInnerHits_ ),
 		idbits(idbits_),
@@ -29,7 +31,15 @@ Electron::Electron( float px_, float py_, float pz_, float en_, float ptErr_, fl
 		h2tebc(h2tebc_),
 		ooemoop(ooemoop_),
 		fbrem(fbrem_),
-		eopin(eopin_) {
+		eopin(eopin_),
+		dEtaCalo(dEtaCalo_),
+		kfchi2(kfchi2_),
+		kfhits(kfhits_),
+		etawidth(etawidth_),
+		phiwidth(phiwidth_),
+		e1x5e5x5(e1x5e5x5_),
+		preShowerOverRaw(preShowerOverRaw_),
+		eopout(eopout_) {
 }
 
 bool Electron::isEB() const {
@@ -133,10 +143,10 @@ bool Electron::isPFIsolatedTight(double rho) const {
 
 bool Electron::passesVetoID() const {
 	if (isEB()) {
-		if (detain < 0.007 && dphiin < 0.8 && sihih < 0.01 && hoe < 0.15 && d0 < 0.04 && dZ < 0.2)
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.8 && sihih < 0.01 && hoe < 0.15 && d0 < 0.04 && dZ < 0.2)
 			return true;
 	} else if (isEE()) {
-		if (detain < 0.01 && dphiin < 0.7 && sihih < 0.03 && d0 < 0.04 && dZ < 0.4)
+		if (fabs(detain) < 0.01 && fabs(dphiin) < 0.7 && sihih < 0.03 && d0 < 0.04 && dZ < 0.4)
 			return true;
 	}
 	return false;
@@ -144,11 +154,11 @@ bool Electron::passesVetoID() const {
 
 bool Electron::passesLooseID() const {
 	if (isEB()) {
-		if (detain < 0.007 && dphiin < 0.15 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.2
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.2
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	} else if (isEE()) {
-		if (detain < 0.009 && dphiin < 0.10 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.2
+		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.2
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	}
@@ -157,11 +167,11 @@ bool Electron::passesLooseID() const {
 
 bool Electron::passesMediumID() const {
 	if (isEB()) {
-		if (detain < 0.004 && dphiin < 0.06 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.06 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	} else if (isEE()) {
-		if (detain < 0.007 && dphiin < 0.06 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.06 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	}
@@ -170,12 +180,27 @@ bool Electron::passesMediumID() const {
 
 bool Electron::passesTightID() const {
 	if (isEB()) {
-		if (detain < 0.004 && dphiin < 0.03 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.03 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
 			return true;
 	} else if (isEE()) {
-		if (detain < 0.005 && dphiin < 0.02 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.005 && fabs(dphiin) < 0.02 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
+			return true;
+	}
+	return false;
+}
+
+bool Electron::passesMvaIdWP80(double mvaVal) {
+	double eta = fabs(sceta);
+	if (eta < 0.8) {
+		if (mvaVal > 0.913)
+			return true;
+	} else if (eta < 1.479) {
+		if (mvaVal > 0.964)
+			return true;
+	} else {
+		if (mvaVal > 0.899)
 			return true;
 	}
 	return false;

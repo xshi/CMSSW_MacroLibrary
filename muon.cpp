@@ -1,6 +1,7 @@
 #include "muon.h"
 #include "toolbox.h"
 #include "TLorentzVector.h"
+#include <iostream>
 
 Muon::Muon( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
 		float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
@@ -43,6 +44,7 @@ bool Muon::isSoftMuon() const {
 	if (isTMOneStationTight() && trkLayersWithMeasurement > 5 && pixelLayersWithMeasurement > 1 && innerTrackChi2 < 1.8 && d0 < 3.0 && dZ < 30.0)
 		return true;
 	return false;
+//	return ( 0x1 << 9 ) & idbits;
 }
 
 bool Muon::isTightMuon() const {
@@ -50,6 +52,7 @@ bool Muon::isTightMuon() const {
 			&& trkValidPixelHits > 0 && trkLayersWithMeasurement > 5)
 		return true;
 	return false;
+//	return ( 0x1 << 10 ) & idbits;
 }
 
 bool Muon::isTrackIsolatedLoose() const {

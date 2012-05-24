@@ -104,6 +104,14 @@ ElectronVariables::ElectronVariables(const Event & ev) {
 	e_ooemoop = ev.findVariableIndex("en_ooemoop");
 	e_fbrem = ev.findVariableIndex("en_fbrem");
 	e_eopin = ev.findVariableIndex("en_eopin");
+	e_dEtaCalo = ev.findVariableIndex("en_dEtaCalo");
+	e_kfchi2 = ev.findVariableIndex("en_kfchi2");
+	e_kfhits = ev.findVariableIndex("en_kfhits");
+	e_etawidth = ev.findVariableIndex("en_etawidth");
+	e_phiwidth = ev.findVariableIndex("en_phiwidth");
+	e_e1x5e5x5 = ev.findVariableIndex("en_e1x5e5x5");
+	e_preShowerOverRaw = ev.findVariableIndex("en_preShowerOverRaw");
+	e_eopout = ev.findVariableIndex("en_eopout");
 }
 
 MuonVariables::MuonVariables(const Event & ev) {
