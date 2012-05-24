@@ -46,6 +46,7 @@ class Electron : public Lepton {
 		bool isInCrack() const;
 		static double effAreaMC(double eta);
 		static double effAreaDATA(double eta);
+		double pfIsolation(double rho) const;
 		bool isPFIsolatedVeto(double rho) const;
 		bool isPFIsolatedLoose(double rho) const;
 		bool isPFIsolatedMedium(double rho) const;
@@ -54,7 +55,12 @@ class Electron : public Lepton {
 		bool passesLooseID() const;
 		bool passesMediumID() const;
 		bool passesTightID() const;
-		bool passesMvaIdWP80(double mvaVal);
+		bool passesTightTriggerID() const;
+		bool passesMvaIdWP70(double mvaVal, double rho);
+		bool passesMvaIdWP80(double mvaVal, double rho);
+		bool passesMvaIdWP85(double mvaVal, double rho);
+		bool passesMvaIdWP90(double mvaVal, double rho);
+		bool passesMvaIdWP95(double mvaVal, double rho);
 };
 
 #endif // ELECTRON_H
