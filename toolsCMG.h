@@ -22,6 +22,7 @@ struct LeptonVariables {
 	unsigned l1_ensferr;
 	unsigned l1_d0;
 	unsigned l1_dZ;
+	unsigned l1_ip3d;
 	unsigned l1_trkpt;
 	unsigned l1_trketa;
 	unsigned l1_trkphi;
@@ -49,6 +50,7 @@ struct LeptonVariables {
 	unsigned l2_ensferr;
 	unsigned l2_d0;
 	unsigned l2_dZ;
+	unsigned l2_ip3d;
 	unsigned l2_trkpt;
 	unsigned l2_trketa;
 	unsigned l2_trkphi;
@@ -77,6 +79,7 @@ struct LeptonVariables {
 	unsigned ln_ensferr;
 	unsigned ln_d0;
 	unsigned ln_dZ;
+	unsigned ln_ip3d;
 	unsigned ln_trkpt;
 	unsigned ln_trketa;
 	unsigned ln_trkphi;
@@ -138,6 +141,7 @@ struct JetVariables {
 	unsigned j_pz;
 	unsigned j_en;
 	unsigned j_btag;
+	unsigned j_genpt;
 
 	JetVariables(const Event & ev);
 };

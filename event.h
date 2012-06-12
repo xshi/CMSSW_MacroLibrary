@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <sstream>
 
 
 class VariableContainer {
@@ -45,24 +46,30 @@ template <typename T> class SingleVariableContainer : public VariableContainer {
 
 template <typename T> class ArrayVariableContainer : public VariableContainer {
 	private:
-		unsigned size;
+		unsigned size_;
 		T * varPtr;
 		ArrayVariableContainer(const ArrayVariableContainer &);
 		ArrayVariableContainer & operator=(const ArrayVariableContainer &);
 	public:
-		ArrayVariableContainer(const std::string & nm, unsigned n ) : VariableContainer(nm), size(n) {
-			varPtr = new T[size];
+		ArrayVariableContainer(const std::string & nm, unsigned n ) : VariableContainer(nm), size_(n) {
+			varPtr = new T[size_];
 		}
 		virtual ~ArrayVariableContainer() {
 			delete[] varPtr;
 		}
 		T getVal(unsigned i) const {
-			if (i >= size)
-				throw std::string("ERROR: ArrayVariableContainer::getVal : Index out of bounds!");
+			if (i >= size_) {
+				std::stringstream ss;
+				ss << i;
+				throw std::string("ERROR: ArrayVariableContainer::getVal : Index out of bounds! - ") + getName() + "[" + ss.str() + "]";
+			}
 			return varPtr[i];
 		}
 		T * getPtr() const {
 			return varPtr;
+		}
+		unsigned size() const {
+			return size_;
 		}
 };
 

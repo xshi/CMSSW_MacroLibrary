@@ -23,6 +23,7 @@ class Lepton {
 		float ensferr;
 		float d0;
 		float dZ;
+		float ip3d;
 		float trkpt;
 		float trketa;
 		float trkphi;
@@ -33,7 +34,7 @@ class Lepton {
 
 		Lepton( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
 				float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
-				float ensf_, float ensferr_, float d0_, float dZ_, float trkpt_, float trketa_, float trkphi_,
+				float ensf_, float ensferr_, float d0_, float dZ_, float ip3d_, float trkpt_, float trketa_, float trkphi_,
 				float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_ );		
 		TLorentzVector lorentzVector() const;
 };

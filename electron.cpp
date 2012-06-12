@@ -6,7 +6,7 @@ using std::max;
 
 Electron::Electron( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
 		float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
-		float ensf_, float ensferr_, float d0_, float dZ_, float trkpt_, float trketa_, float trkphi_,
+		float ensf_, float ensferr_, float d0_, float dZ_, float ip3d_, float trkpt_, float trketa_, float trkphi_,
 		float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
 		int idbits_, float hoe_, float dphiin_, float detain_, float sihih_, float sipip_, float r9_,
 		float sce_, float sceta_, float scphi_, float e2x5max_, float e1x5_, float e5x5_, float h2te_,
@@ -14,7 +14,7 @@ Electron::Electron( float px_, float py_, float pz_, float en_, float ptErr_, fl
 		float kfhits_, float etawidth_, float phiwidth_, float e1x5e5x5_, float preShowerOverRaw_,
 		float eopout_ ) :
 	Lepton( px_, py_, pz_, en_, ptErr_, ecalIso_, hcalIso_, trkIso_, gIso_, chIso_, puchIso_, nhIso_,
-			id_, genid_, ensf_, ensferr_, d0_, dZ_, trkpt_, trketa_, trkphi_, trkchi2_,
+			id_, genid_, ensf_, ensferr_, d0_, dZ_, ip3d_, trkpt_, trketa_, trkphi_, trkchi2_,
 			trkValidPixelHits_, trkValidTrackerHits_, trkLostInnerHits_ ),
 		idbits(idbits_),
 		hoe(hoe_),
@@ -214,6 +214,20 @@ bool Electron::passesTightTriggerID() const {
 	return false;
 }
 
+bool Electron::passesMvaTriggerPreselection() const {
+	double pt = lorentzVector().Pt();
+	if (isEB()) {
+		if (sihih < 0.014 && hoe < 0.15 && trkLostInnerHits == 0
+				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
+			return true;
+	} else if (isEE()) {
+		if (sihih < 0.035 && hoe < 0.10 && trkLostInnerHits == 0
+				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
+			return true;
+	}
+	return false;
+
+}
 bool Electron::passesMvaIdWP70(double mvaVal, double rho) {
 	double eta = fabs(sceta);
 	double pfIsol = pfIsolation(rho);

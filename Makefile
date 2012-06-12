@@ -1,6 +1,6 @@
-OBJS = cut.o event.o options.o preselection.o preselectionCMG.o toolbox.o triggerinfo.o toolbox.o variableGetter.o lepton.o electron.o muon.o toolsCMG.o Dictionary.o
+OBJS = cut.o event.o options.o preselection.o preselectionCMG.o toolbox.o triggerinfo.o toolbox.o variableGetter.o lepton.o electron.o muon.o jet.o toolsCMG.o Dictionary.o
 OUT = libHZZ2l2nu.a
-HEADERS = cut.h event.h options.h preselection.h preselectionCMG.h toolbox.h triggerinfo.h variableGetter.h lepton.h electron.h muon.h toolsCMG.h
+HEADERS = cut.h event.h options.h preselection.h preselectionCMG.h toolbox.h triggerinfo.h variableGetter.h lepton.h electron.h muon.h jet.h toolsCMG.h
 CC = g++
 CFLAGS = -g -ansi -std=c++0x -Wall `root-config --cflags` -pg
 LFLAGS = `root-config --libs` -pg
@@ -41,6 +41,9 @@ electron.o : electron.cpp $(HEADERS)
 
 muon.o : muon.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c muon.cpp
+
+jet.o : jet.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c jet.cpp
 
 toolsCMG.o : toolsCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c toolsCMG.cpp

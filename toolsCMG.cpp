@@ -20,6 +20,7 @@ LeptonVariables::LeptonVariables(const Event & ev) {
 	l1_ensferr = ev.findVariableIndex("l1_ensferr");
 	l1_d0 = ev.findVariableIndex("l1_d0");
 	l1_dZ = ev.findVariableIndex("l1_dZ");
+	l1_ip3d = ev.findVariableIndex("l1_ip3d");
 	l1_trkpt = ev.findVariableIndex("l1_trkpt");
 	l1_trketa = ev.findVariableIndex("l1_trketa");
 	l1_trkphi = ev.findVariableIndex("l1_trkphi");
@@ -47,6 +48,7 @@ LeptonVariables::LeptonVariables(const Event & ev) {
 	l2_ensferr = ev.findVariableIndex("l2_ensferr");
 	l2_d0 = ev.findVariableIndex("l2_d0");
 	l2_dZ = ev.findVariableIndex("l2_dZ");
+	l2_ip3d = ev.findVariableIndex("l2_ip3d");
 	l2_trkpt = ev.findVariableIndex("l2_trkpt");
 	l2_trketa = ev.findVariableIndex("l2_trketa");
 	l2_trkphi = ev.findVariableIndex("l2_trkphi");
@@ -75,6 +77,7 @@ LeptonVariables::LeptonVariables(const Event & ev) {
 	ln_ensferr = ev.findVariableIndex("ln_ensferr");
 	ln_d0 = ev.findVariableIndex("ln_d0");
 	ln_dZ = ev.findVariableIndex("ln_dZ");
+	ln_ip3d = ev.findVariableIndex("ln_ip3d");
 	ln_trkpt = ev.findVariableIndex("ln_trkpt");
 	ln_trketa = ev.findVariableIndex("ln_trketa");
 	ln_trkphi = ev.findVariableIndex("ln_trkphi");
@@ -124,12 +127,13 @@ MuonVariables::MuonVariables(const Event & ev) {
 }
 
 JetVariables::JetVariables(const Event & ev) {
-	jn = ev.findVariableIndex("jn");
-	j_px = ev.findVariableIndex("jn_px");
-	j_py = ev.findVariableIndex("jn_py");
-	j_pz = ev.findVariableIndex("jn_pz");
-	j_en = ev.findVariableIndex("jn_en");
-	j_btag = ev.findVariableIndex("jn_btag1");
+	jn = ev.findVariableIndex("ajn");
+	j_px = ev.findVariableIndex("ajn_px");
+	j_py = ev.findVariableIndex("ajn_py");
+	j_pz = ev.findVariableIndex("ajn_pz");
+	j_en = ev.findVariableIndex("ajn_en");
+	j_btag = ev.findVariableIndex("ajn_btag3");
+	j_genpt = ev.findVariableIndex("ajn_genpt");
 }
 
 MCVariables::MCVariables(const Event & ev) {

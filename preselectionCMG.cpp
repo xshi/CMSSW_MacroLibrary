@@ -1,10 +1,12 @@
 // ROOT Libraries
 #include <TFile.h>
 #include <TLorentzVector.h>
+#include <TRandom.h>
 // Standard Libraries
 //#include <cmath>
 #include <iostream>
 #include <iomanip>
+#include <algorithm>
 //#include <vector>
 //#include <string>
 //#include <sstream>
@@ -17,6 +19,7 @@
 #include "muon.h"
 #include "electron.h"
 #include "toolsCMG.h"
+#include "jet.h"
 
 using std::cout;
 using std::cin;
@@ -81,11 +84,12 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	double zpt;
 	double zeta;
 	double mt;
-	int njet;
 	int nsoftjet;
+	int nhardjet;
 	double maxJetBTag;
 	double minDeltaPhiJetMet;
-	double minDeltaPhiSoftJetMet;
+	double detajj;
+	double mjj;
 	int nvtx;
 	int ni;
 
@@ -107,25 +111,26 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	smallTree->Branch( "ZPT", &zpt, "ZPT/D" );
 	smallTree->Branch( "ZETA", &zeta, "ZETA/D" );
 	smallTree->Branch( "MT", &mt, "MT/D" );
-	smallTree->Branch( "NJET", &njet, "NJET/I" );
+	smallTree->Branch( "NJET", &nhardjet, "NJET/I" );
 	smallTree->Branch( "NSOFTJET", &nsoftjet, "NSOFTJET/I" );
 	smallTree->Branch( "MAXJETBTAG", &maxJetBTag, "MAXJETBTAG/D" );
 	smallTree->Branch( "MINDPJETMET", &minDeltaPhiJetMet, "MINDPJETMET/D" );
-	smallTree->Branch( "MINDPSOFTJETMET", &minDeltaPhiSoftJetMet, "MINDPSOFTJETMET/D" );
+	smallTree->Branch( "DETAJJ", &detajj, "DETAJJ/D" );
+	smallTree->Branch( "MJJ", &mjj, "MJJ/D" );
 	smallTree->Branch( "NVTX", &nvtx, "NVTX/I" );
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
 
 	// bool isData = opt.checkBoolOption("isData");
 
-	// unsigned long nentries = tree->GetEntries();
-	unsigned long nentries = 100000;
-	for ( unsigned long i = 0; i < nentries; i++ ) {
-		if ( i % 10000 == 0) {
+	unsigned long nentries = tree->GetEntries();
+	//unsigned long nentries = 100000;
+	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
+		if ( iEvent % 10000 == 0) {
 			cout << string(40, '\b');
-			cout << setw(10) << i << " / " << setw(10) << nentries << " done ..." << std::flush;
+			cout << setw(10) << iEvent << " / " << setw(10) << nentries << " done ..." << std::flush;
 		}
 
-		tree->GetEntry( i );
+		tree->GetEntry( iEvent );
 
 		run = -999;
 		lumi = -999;
@@ -144,11 +149,12 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		zpt = -999;
 		zeta = -999;
 		mt = -999;
-		njet = -999;
 		nsoftjet = -999;
+		nhardjet = -999;
 		maxJetBTag = -999;
 		minDeltaPhiJetMet = -999;
-		minDeltaPhiSoftJetMet = -999;
+		detajj = -999;
+		mjj = -999;
 		nvtx = -999;
 		ni = -999;
 
@@ -162,47 +168,51 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 //				continue;
 //		}
 
-		pfmet = metPtA[0];
-
 		vector<Electron> electrons = buildElectronCollection(ev, leptonVars, electronVars);
 		vector<Muon> muons = buildMuonCollection(ev, leptonVars, muonVars);
 
 		float rho = *rhoP;
 
 		vector<Electron> selectedElectrons;
-		for (unsigned i = 0; i < electrons.size(); ++i) {
-			TLorentzVector lv = electrons[i].lorentzVector();
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[i].isInCrack() && electrons[i].passesTightID()
-					&& electrons[i].isPFIsolatedTight(rho) )
-				selectedElectrons.push_back(electrons[i]);
+		for (unsigned j = 0; j < electrons.size(); ++j) {
+			TLorentzVector lv = electrons[j].lorentzVector();
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
+					&& electrons[j].isPFIsolatedMedium(rho) )
+				selectedElectrons.push_back(electrons[j]);
 		}
 
 		vector<Electron> looseElectrons;
-		for (unsigned i = 0; i < electrons.size(); ++i) {
-			TLorentzVector lv = electrons[i].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[i].isInCrack() && electrons[i].passesTightID()
-					&& electrons[i].isPFIsolatedTight(rho) )
-				looseElectrons.push_back(electrons[i]);
+		for (unsigned j = 0; j < electrons.size(); ++j) {
+			TLorentzVector lv = electrons[j].lorentzVector();
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
+					&& electrons[j].isPFIsolatedVeto(rho) )
+				looseElectrons.push_back(electrons[j]);
 		}
 
 		vector<Muon> selectedMuons;
-		for (unsigned i = 0; i < muons.size(); ++i) {
-			TLorentzVector lv = muons[i].lorentzVector();
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[i].isTightMuon()
-					&& muons[i].isPFIsolatedTight() ) {
-				selectedMuons.push_back(muons[i]);
+		for (unsigned j = 0; j < muons.size(); ++j) {
+			TLorentzVector lv = muons[j].lorentzVector();
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon()
+					&& muons[j].isPFIsolatedTight() ) {
+				selectedMuons.push_back(muons[j]);
 			}
 		}
 
 		vector<Muon> looseMuons;
-		for (unsigned i = 0; i < muons.size(); ++i) {
-			TLorentzVector lv = muons[i].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[i].isTightMuon()
-					&& muons[i].isPFIsolatedTight() )
-				looseMuons.push_back(muons[i]);
+		for (unsigned j = 0; j < muons.size(); ++j) {
+			TLorentzVector lv = muons[j].lorentzVector();
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() )
+				looseMuons.push_back(muons[j]);
 		}
 
-		int nLeptons = looseElectrons.size() + looseMuons.size();
+		vector<Muon> softMuons;
+		for (unsigned j = 0; j < muons.size(); ++j) {
+			TLorentzVector lv = muons[j].lorentzVector();
+			if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
+				softMuons.push_back(muons[j]);
+		}
+
+		int nLeptons = looseElectrons.size() + looseMuons.size() + softMuons.size();
 		if ( nLeptons > 2 )
 			continue;
 
@@ -224,12 +234,9 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			}
 		}
 
-//		if ( selectedLeptons[0]->id != -selectedLeptons[1]->id )
-//			continue;
-
-		nele = looseElectrons.size();
-		nmu = looseMuons.size();
-		nsoftmu = 0;
+		nele = selectedElectrons.size();
+		nmu = selectedMuons.size();
+		nsoftmu = softMuons.size();
 
 		TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
 		TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
@@ -258,36 +265,61 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		if (zmass < 76.1876 || zmass > 106.1876 || zpt < 55)
 			continue;
 
-		double metphi = metPhiA[0];
-		double metPx = pfmet * cos( metphi );
-		double metPy = pfmet * sin( metphi );
-		double px = metPx + Zcand.Px();
-		double py = metPy + Zcand.Py();
+		vector<Jet> jets = selectJetsCMG( ev, jetVars );
+
+		TLorentzVector jetDiff = smearJets( jets );
+
+		TLorentzVector met;
+		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
+		met -= jetDiff;
+		pfmet = met.Pt();
+
+		double px = met.Px() + Zcand.Px();
+		double py = met.Py() + Zcand.Py();
 		double pt2 = px * px + py * py;
 		double e = sqrt(zpt * zpt + zmass * zmass) + sqrt(pfmet * pfmet + zmass * zmass);
 		double mt2 = e * e - pt2;
 		mt = (mt2 > 0) ? sqrt(mt2) : 0;
 
-		vector<unsigned> jets;
-		selectJetsCMG( ev, jetVars, jets );
-		njet = jets.size();
-
-		vector<unsigned> softjets;
-		selectJetsCMG( ev, jetVars, softjets, 15 );
-		nsoftjet = softjets.size();
-
-		const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
-		const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
-		const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
-		const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
-		const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
-
+		nsoftjet = 0;
+		nhardjet = 0;
+		vector<Jet> hardjets;
 		maxJetBTag = -999;
-		for ( int j = 0; j < njet; ++j ) {
-			unsigned jetIdx = jets[j];
-			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
-			if ( j_btag->getVal(jetIdx) > maxJetBTag && fabs(jet.Eta()) < 2.4 )
-				maxJetBTag = j_btag->getVal(jetIdx);
+		minDeltaPhiJetMet = 999;
+		for ( unsigned j = 0; j < jets.size(); ++j ) {
+			TLorentzVector jet = jets[j].lorentzVector();
+			if ( jet.Pt() > 15 )
+				nsoftjet++;
+			if ( jet.Pt() > 30 ) {
+				hardjets.push_back( jets[j] );
+			}
+			if ( jets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
+				maxJetBTag = jets[j].btag;
+			double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+				minDeltaPhiJetMet = tempDelPhiJetMet;
+		}
+		nhardjet = hardjets.size();
+		if (nsoftjet == 0)
+			continue;
+		if (maxJetBTag > 0.275)
+			continue;
+
+		if (nhardjet > 1) {
+			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
+					return a.lorentzVector().Eta() < b.lorentzVector().Eta();
+					});
+			for (unsigned j = 0; j < hardjets.size() - 1; ++j) {
+				TLorentzVector jet1 = hardjets[j].lorentzVector();
+				TLorentzVector jet2 = hardjets[j + 1].lorentzVector();
+				double tmpDelEta = jet2.Eta() - jet1.Eta();
+				TLorentzVector diJetSystem = jet1 + jet2;
+				double tmpMass = diJetSystem.M();
+				if (tmpDelEta > 4.0 && tmpMass > 500 && zeta > jet1.Eta() && jet2.Eta() > zeta) {
+					detajj = tmpDelEta;
+					mjj = tmpMass;
+				}
+			}
 		}
 		/*
 		unsigned temprun = 160956;
@@ -306,25 +338,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			cin.get();
 		}
 		*/
-		if (maxJetBTag > 2.0)
-			continue;
-
-		minDeltaPhiJetMet = 999;
-		for ( int j = 0; j < njet; ++j ) {
-			unsigned jetIdx = jets[j];
-			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
-			double tempDelPhiJetMet = deltaPhi(metphi, jet.Phi());
-			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
-				minDeltaPhiJetMet = tempDelPhiJetMet;
-		}
-		minDeltaPhiSoftJetMet = 999;
-		for ( int j = 0; j < nsoftjet; ++j ) {
-			unsigned jetIdx = softjets[j];
-			TLorentzVector jet( j_px->getVal(jetIdx), j_py->getVal(jetIdx), j_pz->getVal(jetIdx), j_en->getVal(jetIdx) );
-			double tempDelPhiSoftJetMet = deltaPhi(metphi, jet.Phi());
-			if ( tempDelPhiSoftJetMet < minDeltaPhiSoftJetMet )
-				minDeltaPhiSoftJetMet = tempDelPhiSoftJetMet;
-		}
 
 		nvtx = *nvtxP;
 
@@ -332,6 +345,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		
 		smallTree->Fill();
 	}
+
 	cout << endl;
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);
@@ -367,6 +381,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ensferr));
 		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_d0));
 		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_dZ));
+		const SingleVariableContainer<float> * ip3d = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ip3d));
 		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkpt));
 		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trketa));
 		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkphi));
@@ -378,7 +393,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		int pid = pidC->getVal();
 
 		Muon tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
-				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
@@ -404,6 +419,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ensferr));
 		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_d0));
 		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_dZ));
+		const SingleVariableContainer<float> * ip3d = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ip3d));
 		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkpt));
 		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trketa));
 		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkphi));
@@ -415,7 +431,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		int pid = pidC->getVal();
 
 		Muon tmp( px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
-				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
@@ -442,6 +458,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 	const ArrayVariableContainer<float> * ensferr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ensferr));
 	const ArrayVariableContainer<float> * d0 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_d0));
 	const ArrayVariableContainer<float> * dZ = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_dZ));
+	const ArrayVariableContainer<float> * ip3d = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ip3d));
 	const ArrayVariableContainer<float> * trkpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkpt));
 	const ArrayVariableContainer<float> * trketa = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trketa));
 	const ArrayVariableContainer<float> * trkphi = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkphi));
@@ -455,7 +472,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		if (fabs(id->getVal(i)) == 13) {
 			int pid = pidC->getVal(i);
 			Muon tmp(px->getVal(i), py->getVal(i), pz->getVal(i), en->getVal(i), ptErr->getVal(i), ecalIso->getVal(i), hcalIso->getVal(i), trkIso->getVal(i), gIso->getVal(i),
-				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i),
+				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i), ip3d->getVal(i),
 				trkpt->getVal(i), trketa->getVal(i), trkphi->getVal(i), trkchi2->getVal(i), trkValidPixelHits->getVal(i), trkValidTrackerHits->getVal(i),
 				trkLostInnerHits->getVal(i), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
@@ -513,6 +530,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ensferr));
 		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_d0));
 		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_dZ));
+		const SingleVariableContainer<float> * ip3d = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_ip3d));
 		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkpt));
 		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trketa));
 		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l1_trkphi));
@@ -524,7 +542,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		int pid = pidC->getVal();
 
 		Electron tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
-				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), e_idbits->getVal(pid), e_hoe->getVal(pid), e_dphiin->getVal(pid), e_detain->getVal(pid),
 				e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid), e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid),
@@ -552,6 +570,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		const SingleVariableContainer<float> * ensferr = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ensferr));
 		const SingleVariableContainer<float> * d0 = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_d0));
 		const SingleVariableContainer<float> * dZ = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_dZ));
+		const SingleVariableContainer<float> * ip3d = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_ip3d));
 		const SingleVariableContainer<float> * trkpt = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkpt));
 		const SingleVariableContainer<float> * trketa = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trketa));
 		const SingleVariableContainer<float> * trkphi = dynamic_cast<const SingleVariableContainer<float> *>(ev.getVariable(leptonVars.l2_trkphi));
@@ -563,7 +582,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		int pid = pidC->getVal();
 
 		Electron tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
-				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), e_idbits->getVal(pid), e_hoe->getVal(pid), e_dphiin->getVal(pid), e_detain->getVal(pid),
 				e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid), e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid),
@@ -593,6 +612,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	const ArrayVariableContainer<float> * ensferr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ensferr));
 	const ArrayVariableContainer<float> * d0 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_d0));
 	const ArrayVariableContainer<float> * dZ = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_dZ));
+	const ArrayVariableContainer<float> * ip3d = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_ip3d));
 	const ArrayVariableContainer<float> * trkpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkpt));
 	const ArrayVariableContainer<float> * trketa = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trketa));
 	const ArrayVariableContainer<float> * trkphi = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(leptonVars.ln_trkphi));
@@ -606,7 +626,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		if (fabs(id->getVal(i)) == 11) {
 			int pid = pidC->getVal(i);
 			Electron tmp(px->getVal(i), py->getVal(i), pz->getVal(i), en->getVal(i), ptErr->getVal(i), ecalIso->getVal(i), hcalIso->getVal(i), trkIso->getVal(i), gIso->getVal(i),
-				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i),
+				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i), ip3d->getVal(i),
 				trkpt->getVal(i), trketa->getVal(i), trkphi->getVal(i), trkchi2->getVal(i), trkValidPixelHits->getVal(i), trkValidTrackerHits->getVal(i),
 				trkLostInnerHits->getVal(i), e_idbits->getVal(pid), e_hoe->getVal(pid),
 					e_dphiin->getVal(pid), e_detain->getVal(pid),	e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid),
@@ -620,20 +640,71 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	return electrons;
 }
 
-void selectJetsCMG(const Event & ev, const JetVariables & jetVars, vector<unsigned> & jets, double ptMin, double etaMax) {
+vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, double ptMin, double etaMax) {
 
 	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
 	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
 	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
 	const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
 	const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
+	const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
+	const ArrayVariableContainer<float> * j_genpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_genpt));
 
-	jets.clear();
+	vector<Jet> jets;
 	for ( int i = 0; i < jn->getVal(); ++i ) {
 		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
 		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax )
-			jets.push_back( i );
+			jets.push_back( Jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i),
+						j_btag->getVal(i), j_genpt->getVal(i)));
 	}
+	return jets;
+}
+
+TLorentzVector smearJets(vector<Jet> & jets) {
+	TLorentzVector jetDiff;
+	for ( unsigned j = 0; j < jets.size(); ++j ) {
+		Jet smJet = smearedJet( jets[j] );
+		jetDiff += (smJet.lorentzVector() - jets[j].lorentzVector());
+		jets[j] = smJet;
+	}
+	return jetDiff;
+}
+
+Jet smearedJet(const Jet & origJet) {
+	if (origJet.genpt <= 0)
+		return origJet;
+
+	//smearing factors are described in https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution
+	double eta = fabs(origJet.lorentzVector().Eta());
+	double pt = origJet.lorentzVector().Pt();
+	double ptSF = 1.0;
+	double ptSF_err = 0.06;
+	if (eta < 0.5) {
+		ptSF = 1.066;
+		ptSF_err = sqrt(pow(0.007, 2) + pow(0.5 * (0.07 + 0.072), 2));
+	} else if (eta >= 0.5 && eta < 1.7) {
+		ptSF = 1.191;
+		ptSF_err = sqrt(pow(0.019, 2) + pow(0.5 * (0.06 + 0.062), 2));
+	} else if (eta >= 1.7 && eta < 2.3) {
+		ptSF = 1.096;
+		ptSF_err = sqrt(pow(0.030, 2) + pow(0.5 * (0.08 + 0.085),2));
+	} else if (eta >= 2.3 && eta < 5.0) {
+		ptSF = 1.166;
+		ptSF_err = sqrt(pow(0.050, 2) + pow(0.5 * (0.19 + 0.199), 2));
+	}
+	
+	ptSF = max(0., (origJet.genpt + gRandom->Gaus(ptSF, ptSF_err) * (pt - origJet.genpt))) / pt;  //deterministic version
+	if (ptSF <= 0)
+		return origJet;
+
+	double px = origJet.px * ptSF;
+	double py = origJet.py * ptSF;
+	double pz = origJet.pz;
+	double mass = origJet.lorentzVector().M();
+	double en = sqrt(mass * mass + px * px + py * py + pz * pz);
+
+	Jet smearedJet(px, py, pz, en, origJet.btag, origJet.genpt);
+	return smearedJet;
 }
 
 /*
