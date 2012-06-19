@@ -92,70 +92,70 @@ double Electron::effAreaDATA(double eta) {
 		return 0.13;
 }
 
-double Electron::pfIsolation(double rho) const {
+double Electron::pfIsolation(double rho, bool isData) const {
 	double rhoPr = max(rho, 0.0);
 	double eta = fabs(sceta);
-	double nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
+	double nIso;
+	if (isData)
+		nIso = max(nhIso + gIso - rhoPr * effAreaDATA(eta), 0.0);
+	else
+		nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
 	return (nIso + chIso) / lorentzVector().Pt();
 }
 
-bool Electron::isPFIsolatedVeto(double rho) const {
-	double pfIsol = pfIsolation(rho);
+bool Electron::isPFIsolatedVeto(double rho, bool isData) const {
+	double pfIsol = pfIsolation(rho, isData);
 	if (isEB())
 		return pfIsol < 0.15;
-	else if (isEE())
+	else
 		return pfIsol < 0.15;
-	return false;
 }
 
-bool Electron::isPFIsolatedLoose(double rho) const {
+bool Electron::isPFIsolatedLoose(double rho, bool isData) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho);
+	double pfIsol = pfIsolation(rho, isData);
 	if (isEB())
 		return pfIsol < 0.15;
-	else if (isEE()) {
+	else {
 		if (lv.Pt() > 20)
 			return pfIsol < 0.15;
 		else
 			return pfIsol < 0.10;
 	}
-	return false;
 }
 
-bool Electron::isPFIsolatedMedium(double rho) const {
+bool Electron::isPFIsolatedMedium(double rho, bool isData) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho);
+	double pfIsol = pfIsolation(rho, isData);
 	if (isEB())
 		return pfIsol < 0.15;
-	else if (isEE()) {
+	else {
 		if (lv.Pt() > 20)
 			return pfIsol < 0.15;
 		else
 			return pfIsol < 0.10;
 	}
-	return false;
 }
 
-bool Electron::isPFIsolatedTight(double rho) const {
+bool Electron::isPFIsolatedTight(double rho, bool isData) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho);
+	double pfIsol = pfIsolation(rho, isData);
 	if (isEB())
 		return pfIsol < 0.10;
-	else if (isEE()) {
+	else {
 		if (lv.Pt() > 20)
 			return pfIsol < 0.10;
 		else
 			return pfIsol < 0.07;
 	}
-	return false;
 }
 
 bool Electron::passesVetoID() const {
 	if (isEB()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.8 && sihih < 0.01 && hoe < 0.15 && d0 < 0.04 && dZ < 0.2)
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.8 && sihih < 0.01 && hoe < 0.15 && fabs(d0) < 0.04 && fabs(dZ) < 0.2)
 			return true;
-	} else if (isEE()) {
-		if (fabs(detain) < 0.01 && fabs(dphiin) < 0.7 && sihih < 0.03 && d0 < 0.04 && dZ < 0.4)
+	} else {
+		if (fabs(detain) < 0.01 && fabs(dphiin) < 0.7 && sihih < 0.03 && fabs(d0) < 0.04 && fabs(dZ) < 0.4)
 			return true;
 	}
 	return false;
@@ -163,11 +163,11 @@ bool Electron::passesVetoID() const {
 
 bool Electron::passesLooseID() const {
 	if (isEB()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.2
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.2
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
-	} else if (isEE()) {
-		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.2
+	} else {
+		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.2
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	}
@@ -176,11 +176,11 @@ bool Electron::passesLooseID() const {
 
 bool Electron::passesMediumID() const {
 	if (isEB()) {
-		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.06 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.06 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
-	} else if (isEE()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.06 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
+	} else {
+		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.03 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
 			return true;
 	}
@@ -189,11 +189,11 @@ bool Electron::passesMediumID() const {
 
 bool Electron::passesTightID() const {
 	if (isEB()) {
-		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.03 && sihih < 0.01 && hoe < 0.12 && d0 < 0.02 && dZ < 0.1
+		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.03 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
 			return true;
-	} else if (isEE()) {
-		if (fabs(detain) < 0.005 && fabs(dphiin) < 0.02 && sihih < 0.03 && hoe < 0.10 && d0 < 0.02 && dZ < 0.1
+	} else {
+		if (fabs(detain) < 0.005 && fabs(dphiin) < 0.02 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
 				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
 			return true;
 	}
@@ -206,7 +206,7 @@ bool Electron::passesTightTriggerID() const {
 		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12
 				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
 			return true;
-	} else if (isEE()) {
+	} else {
 		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10
 				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
 			return true;
@@ -220,100 +220,11 @@ bool Electron::passesMvaTriggerPreselection() const {
 		if (sihih < 0.014 && hoe < 0.15 && trkLostInnerHits == 0
 				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
 			return true;
-	} else if (isEE()) {
+	} else {
 		if (sihih < 0.035 && hoe < 0.10 && trkLostInnerHits == 0
 				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
 			return true;
 	}
 	return false;
 
-}
-bool Electron::passesMvaIdWP70(double mvaVal, double rho) {
-	double eta = fabs(sceta);
-	double pfIsol = pfIsolation(rho);
-	if (!passesTightTriggerID())
-		return false;
-	if (eta < 0.8) {
-		if (mvaVal > 0.977 && pfIsol < 0.093)
-			return true;
-	} else if (eta < 1.479) {
-		if (mvaVal > 0.956 && pfIsol < 0.095)
-			return true;
-	} else {
-		if (mvaVal > 0.966 && pfIsol < 0.171)
-			return true;
-	}
-	return false;
-}
-
-bool Electron::passesMvaIdWP80(double mvaVal, double rho) {
-	double eta = fabs(sceta);
-	double pfIsol = pfIsolation(rho);
-	if (!passesTightTriggerID())
-		return false;
-	if (eta < 0.8) {
-		if (mvaVal > 0.913 && pfIsol < 0.105)
-			return true;
-	} else if (eta < 1.479) {
-		if (mvaVal > 0.964 && pfIsol < 0.178)
-			return true;
-	} else {
-		if (mvaVal > 0.899 && pfIsol < 0.150)
-			return true;
-	}
-	return false;
-}
-
-bool Electron::passesMvaIdWP85(double mvaVal, double rho) {
-	double eta = fabs(sceta);
-	double pfIsol = pfIsolation(rho);
-	if (!passesTightTriggerID())
-		return false;
-	if (eta < 0.8) {
-		if (mvaVal > 0.929 && pfIsol < 0.135)
-			return true;
-	} else if (eta < 1.479) {
-		if (mvaVal > 0.931 && pfIsol < 0.159)
-			return true;
-	} else {
-		if (mvaVal > 0.805 && pfIsol < 0.155)
-			return true;
-	}
-	return false;
-}
-
-bool Electron::passesMvaIdWP90(double mvaVal, double rho) {
-	double eta = fabs(sceta);
-	double pfIsol = pfIsolation(rho);
-	if (!passesTightTriggerID())
-		return false;
-	if (eta < 0.8) {
-		if (mvaVal > 0.877 && pfIsol < 0.177)
-			return true;
-	} else if (eta < 1.479) {
-		if (mvaVal > 0.794 && pfIsol < 0.180)
-			return true;
-	} else {
-		if (mvaVal > 0.846 && pfIsol < 0.244)
-			return true;
-	}
-	return false;
-}
-
-bool Electron::passesMvaIdWP95(double mvaVal, double rho) {
-	double eta = fabs(sceta);
-	double pfIsol = pfIsolation(rho);
-	if (!passesTightTriggerID())
-		return false;
-	if (eta < 0.8) {
-		if (mvaVal > 0.858 && pfIsol < 0.253)
-			return true;
-	} else if (eta < 1.479) {
-		if (mvaVal > 0.425 && pfIsol < 0.225)
-			return true;
-	} else {
-		if (mvaVal > 0.759 && pfIsol < 0.308)
-			return true;
-	}
-	return false;
 }

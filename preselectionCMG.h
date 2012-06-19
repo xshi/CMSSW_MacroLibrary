@@ -19,7 +19,7 @@ class MuonVariables;
 class JetVariables;
 class Jet;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type );
+void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData );
 Jet smearedJet(const Jet & origJet);
 TLorentzVector smearJets(std::vector<Jet> & jets);
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);

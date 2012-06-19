@@ -120,6 +120,7 @@ ElectronVariables::ElectronVariables(const Event & ev) {
 MuonVariables::MuonVariables(const Event & ev) {
 	m_idbits = ev.findVariableIndex("mn_idbits");
 	m_nMatches = ev.findVariableIndex("mn_nMatches");
+	m_nMatchedStations = ev.findVariableIndex("mn_nMatchedStations");
 	m_validMuonHits = ev.findVariableIndex("mn_validMuonHits");
 	m_innerTrackChi2 = ev.findVariableIndex("mn_innerTrackChi2");
 	m_trkLayersWithMeasurement = ev.findVariableIndex("mn_trkLayersWithMeasurement");

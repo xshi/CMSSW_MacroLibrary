@@ -7,6 +7,7 @@ class Muon : public Lepton {
 	public :
 		int idbits;
 		float nMatches;
+		float nMatchedStations;
 		float validMuonHits;
 		float innerTrackChi2;
 		float trkLayersWithMeasurement;
@@ -16,7 +17,7 @@ class Muon : public Lepton {
 				float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
 				float ensf_, float ensferr_, float d0_, float dZ_, float ip3d_, float trkpt_, float trketa_, float trkphi_,
 				float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
-				int idbits_, float nMatches_, float validMuonHits_, float innerTrackChi2_,
+				int idbits_, float nMatches_, float nMatchedStations_, float validMuonHits_, float innerTrackChi2_,
 				float trkLayersWithMeasurement_, float pixelLayersWithMeasurement_ );
 
 		bool isTrackerMuon() const;

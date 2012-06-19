@@ -2,6 +2,7 @@
 #include <TFile.h>
 #include <TLorentzVector.h>
 #include <TRandom.h>
+#include <TH1D.h>
 // Standard Libraries
 //#include <cmath>
 #include <iostream>
@@ -29,7 +30,7 @@ using std::vector;
 using std::stringstream;
 using std::setw;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
+void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) {
 	if (type == ELE)
 		cout << "Entering ElectronPreselection() ..." << endl;
 	else if (type == MU)
@@ -39,6 +40,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	if (!file->IsOpen())
 		throw string("ERROR: Can't open the file: " + opt.checkStringOption("inpath") + "!");
 	TDirectory * dir = (TDirectory *) file->Get("evAnalyzer");
+	TH1D * histo = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("cutflow");
 	TTree * tree = ( TTree * ) dir->Get( "data" );
 	Event ev( tree );
 	LeptonVariables leptonVars( ev );
@@ -66,6 +68,9 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	
 	cout << outputFile << endl;
 	TFile * out = new TFile( outputFile.c_str(), "recreate" );
+	TH1D * outHisto = new TH1D("nevt", "nevt", 1, 0, 1);
+	outHisto->SetBinContent(1, histo->GetBinContent(1));
+	outHisto->Write("nevt");
 
 	unsigned run;
 	unsigned lumi;
@@ -111,8 +116,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	smallTree->Branch( "ZPT", &zpt, "ZPT/D" );
 	smallTree->Branch( "ZETA", &zeta, "ZETA/D" );
 	smallTree->Branch( "MT", &mt, "MT/D" );
-	smallTree->Branch( "NJET", &nhardjet, "NJET/I" );
 	smallTree->Branch( "NSOFTJET", &nsoftjet, "NSOFTJET/I" );
+	smallTree->Branch( "NHARDJET", &nhardjet, "NHARDJET/I" );
 	smallTree->Branch( "MAXJETBTAG", &maxJetBTag, "MAXJETBTAG/D" );
 	smallTree->Branch( "MINDPJETMET", &minDeltaPhiJetMet, "MINDPJETMET/D" );
 	smallTree->Branch( "DETAJJ", &detajj, "DETAJJ/D" );
@@ -123,7 +128,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	// bool isData = opt.checkBoolOption("isData");
 
 	unsigned long nentries = tree->GetEntries();
-	//unsigned long nentries = 100000;
+	//unsigned long nentries = 10000;
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 		if ( iEvent % 10000 == 0) {
 			cout << string(40, '\b');
@@ -173,48 +178,36 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 
 		float rho = *rhoP;
 
+		vector<Electron> looseElectrons;
 		vector<Electron> selectedElectrons;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
-					&& electrons[j].isPFIsolatedMedium(rho) )
-				selectedElectrons.push_back(electrons[j]);
-		}
-
-		vector<Electron> looseElectrons;
-		for (unsigned j = 0; j < electrons.size(); ++j) {
-			TLorentzVector lv = electrons[j].lorentzVector();
 			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
-					&& electrons[j].isPFIsolatedVeto(rho) )
+					&& electrons[j].isPFIsolatedVeto(rho, isData) )
 				looseElectrons.push_back(electrons[j]);
-		}
-
-		vector<Muon> selectedMuons;
-		for (unsigned j = 0; j < muons.size(); ++j) {
-			TLorentzVector lv = muons[j].lorentzVector();
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon()
-					&& muons[j].isPFIsolatedTight() ) {
-				selectedMuons.push_back(muons[j]);
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
+					&& electrons[j].isPFIsolatedMedium(rho, isData) ) {
+				selectedElectrons.push_back(electrons[j]);
 			}
 		}
 
 		vector<Muon> looseMuons;
-		for (unsigned j = 0; j < muons.size(); ++j) {
-			TLorentzVector lv = muons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() )
-				looseMuons.push_back(muons[j]);
-		}
-
 		vector<Muon> softMuons;
+		vector<Muon> selectedMuons;
 		for (unsigned j = 0; j < muons.size(); ++j) {
 			TLorentzVector lv = muons[j].lorentzVector();
-			if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() && muons[j].isPFIsolatedLoose() ) {
+				looseMuons.push_back(muons[j]);
+			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
 				softMuons.push_back(muons[j]);
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && muons[j].isPFIsolatedLoose() ) {
+				selectedMuons.push_back(muons[j]);
+			}
 		}
 
-		int nLeptons = looseElectrons.size() + looseMuons.size() + softMuons.size();
-		if ( nLeptons > 2 )
-			continue;
+//		int nLeptons = looseElectrons.size() + looseMuons.size() + softMuons.size();
+//		if ( nLeptons > 2 )
+//			continue;
 
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
@@ -234,15 +227,15 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			}
 		}
 
-		nele = selectedElectrons.size();
-		nmu = selectedMuons.size();
+		nele = looseElectrons.size();
+		nmu = looseMuons.size();
 		nsoftmu = softMuons.size();
 
 		TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
 		TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
 
-		if (lep1.Pt() < 20 || lep2.Pt() < 20)
-			continue;
+//		if (lep1.Pt() < 20 || lep2.Pt() < 20)
+//			continue;
 
 		if (lep2.Pt() > lep1.Pt()) {
 			TLorentzVector temp = lep1;
@@ -262,12 +255,13 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		zpt = Zcand.Pt();
 		zeta = Zcand.Eta();
 		zmass = Zcand.M();
-		if (zmass < 76.1876 || zmass > 106.1876 || zpt < 55)
-			continue;
+//		if (zmass < 76.1876 || zmass > 106.1876 || zpt < 55)
+//			continue;
 
 		vector<Jet> jets = selectJetsCMG( ev, jetVars );
-
 		TLorentzVector jetDiff = smearJets( jets );
+		if (isData && jetDiff != TLorentzVector())
+			throw std::string("Jet Corrections different from zero in DATA!");
 
 		TLorentzVector met;
 		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
@@ -300,10 +294,10 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 				minDeltaPhiJetMet = tempDelPhiJetMet;
 		}
 		nhardjet = hardjets.size();
-		if (nsoftjet == 0)
-			continue;
-		if (maxJetBTag > 0.275)
-			continue;
+//		if (nsoftjet == 0)
+//			continue;
+//		if (maxJetBTag > 0.275)
+//			continue;
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
@@ -345,8 +339,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 		
 		smallTree->Fill();
 	}
-
 	cout << endl;
+
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);
 	delete smallTree;
@@ -357,6 +351,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 	vector<Muon> muons;
 	const ArrayVariableContainer<int> * m_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_idbits));
 	const ArrayVariableContainer<float> * m_nMatches = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_nMatches));
+	const ArrayVariableContainer<float> * m_nMatchedStations = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_nMatchedStations));
 	const ArrayVariableContainer<float> * m_validMuonHits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_validMuonHits));
 	const ArrayVariableContainer<float> * m_innerTrackChi2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_innerTrackChi2));
 	const ArrayVariableContainer<float> * m_trkLayersWithMeasurement = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_trkLayersWithMeasurement));
@@ -395,7 +390,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		Muon tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_nMatchedStations->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 		muons.push_back(tmp);
 	}
@@ -433,7 +428,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 		Muon tmp( px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
 				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
-				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				trkLostInnerHits->getVal(), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_nMatchedStations->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 		muons.push_back(tmp);
 	}
@@ -474,7 +469,7 @@ vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & lept
 			Muon tmp(px->getVal(i), py->getVal(i), pz->getVal(i), en->getVal(i), ptErr->getVal(i), ecalIso->getVal(i), hcalIso->getVal(i), trkIso->getVal(i), gIso->getVal(i),
 				chIso->getVal(i), puchIso->getVal(i), nhIso->getVal(i), id->getVal(i), genid->getVal(i), ensf->getVal(i), ensferr->getVal(i), d0->getVal(i), dZ->getVal(i), ip3d->getVal(i),
 				trkpt->getVal(i), trketa->getVal(i), trkphi->getVal(i), trkchi2->getVal(i), trkValidPixelHits->getVal(i), trkValidTrackerHits->getVal(i),
-				trkLostInnerHits->getVal(i), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
+				trkLostInnerHits->getVal(i), m_idbits->getVal(pid), m_nMatches->getVal(pid), m_nMatchedStations->getVal(pid), m_validMuonHits->getVal(pid), m_innerTrackChi2->getVal(pid),
 				m_trkLayersWithMeasurement->getVal(pid), m_pixelLayersWithMeasurement->getVal(pid));
 			muons.push_back(tmp);
 		}

@@ -126,6 +126,7 @@ struct ElectronVariables {
 struct MuonVariables {
 	unsigned m_idbits;
 	unsigned m_nMatches;
+	unsigned m_nMatchedStations;
 	unsigned m_validMuonHits;
 	unsigned m_innerTrackChi2;
 	unsigned m_trkLayersWithMeasurement;
