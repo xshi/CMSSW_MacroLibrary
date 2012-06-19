@@ -73,15 +73,40 @@ template <typename T> class ArrayVariableContainer : public VariableContainer {
 		}
 };
 
+template <typename T> class VectorVariableContainer : public VariableContainer {
+	private:
+		std::vector<T> ** varPtr;
+		VectorVariableContainer(const VectorVariableContainer &);
+		VectorVariableContainer & operator=(const VectorVariableContainer &);
+	public:
+		VectorVariableContainer(const std::string & nm ) : VariableContainer(nm) {
+			varPtr = new std::vector<T> *;
+			*varPtr = 0;
+		}
+		virtual ~VectorVariableContainer() {
+			delete varPtr;
+		}
+		T getVal(unsigned i) const {
+			if (i >= (*varPtr)->size()) {
+				std::stringstream ss;
+				ss << i;
+				throw std::string("ERROR: VectorVariableContainer::getVal : Index out of bounds! - ") + getName() + "[" + ss.str() + "]";
+			}
+			return (*varPtr)->at(i);
+		}
+		std::vector<T> * getPtr() const {
+			return *varPtr;
+		}
+		std::vector<T> ** getPtrToPtr() const {
+			return varPtr;
+		}
+};
+
 class TriggerInfo;
 
 class Event {
 	private:
 		std::vector<VariableContainer *> variables;
-
-		std::vector<std::pair<std::string, std::vector<int> **> > VectorsInt;
-		std::vector<std::pair<std::string, std::vector<float> **> > VectorsFloat;
-		std::vector<std::pair<std::string, std::vector<double> **> > VectorsDouble;
 		
 		std::vector<std::pair<std::string, TriggerInfo **> > Triggers;
 
@@ -154,9 +179,35 @@ class Event {
 			return getArrayVariableAddress<T>(name);
 		}
 
-		const std::vector<int> * getVectorIntAdr(const std::string & name) const;
-		const std::vector<float> * getVectorFloatAdr(const std::string & name) const;
-		const std::vector<double> * getVectorDoubleAdr(const std::string & name) const;
+		template <typename T> T getVectorVariableValue(const std::string & name, unsigned i) const {
+			VariableContainer * tempPtr = findVariable(name);
+			if (tempPtr) {
+				VectorVariableContainer<T> * varPtr = dynamic_cast<VectorVariableContainer<T> *>(tempPtr);
+				if (varPtr)
+					return varPtr->getVal(i);
+				else
+					throw std::string("ERROR: Event::getVectorVariableValue : Variable name (" + name + ") does not match expected type!");
+			} else
+				throw std::string("ERROR: Event::getVectorVariableValue : Variable (" + name + ") can't be found!");
+		}
+
+		template <typename T> inline T getVVV(const std::string & name, unsigned i) const {
+			return getVectorVariableValue<T>(name, i);
+		}
+
+		template <typename T> std::vector<T> * getVectorVariableAddress(const std::string & name) const {
+			VariableContainer * tempPtr = findVariable(name);
+			if (tempPtr) {
+				VectorVariableContainer<T> * varPtr = dynamic_cast<VectorVariableContainer<T> *>(tempPtr);
+				if (varPtr)
+					return varPtr->getPtr();
+			}
+			return 0;
+		}
+
+		template <typename T> inline std::vector<T> * getVVA(const std::string & name) const {
+			return getVectorVariableAddress<T>(name);
+		}
 		
 		const TriggerInfo * getTriggerInfo(const std::string & name) const;
 };

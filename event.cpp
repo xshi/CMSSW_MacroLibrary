@@ -94,23 +94,17 @@ Event::Event( TTree *tree ) {
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
 			} else if ( leafPointer->GetTypeName() == string("vector<int>") && leafLength == 1 ) {
-				vector<int> ** tmpPtr = new vector<int> *;
-				*tmpPtr = 0;
-				tree->SetBranchAddress( leafPointer->GetBranch()->GetName(), tmpPtr );
-				pair<string, vector<int> **> temp(leafPointer->GetBranch()->GetName(), tmpPtr );
-				VectorsInt.push_back(temp);
+				VectorVariableContainer<int> * tempWrapper = new VectorVariableContainer<int>(varName);
+				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
+				variables.push_back(tempWrapper);
 			} else if ( leafPointer->GetTypeName() == string("vector<float>") && leafLength == 1 ) {
-				vector<float> ** tmpPtr = new vector<float> *;
-				*tmpPtr = 0;
-				tree->SetBranchAddress( leafPointer->GetBranch()->GetName(), tmpPtr );
-				pair<string, vector<float> **> temp(leafPointer->GetBranch()->GetName(), tmpPtr );
-				VectorsFloat.push_back(temp);
+				VectorVariableContainer<float> * tempWrapper = new VectorVariableContainer<float>(varName);
+				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
+				variables.push_back(tempWrapper);
 			} else if ( leafPointer->GetTypeName() == string("vector<double>") && leafLength == 1 ) {
-				vector<double> ** tmpPtr = new vector<double> *;
-				*tmpPtr = 0;
-				tree->SetBranchAddress( leafPointer->GetBranch()->GetName(), tmpPtr );
-				pair<string, vector<double> **> temp(leafPointer->GetBranch()->GetName(), tmpPtr );
-				VectorsDouble.push_back(temp);
+				VectorVariableContainer<double> * tempWrapper = new VectorVariableContainer<double>(varName);
+				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
+				variables.push_back(tempWrapper);
 			} else if ( leafPointer->GetTypeName() == string("TriggerInfo") && leafLength == 1 ) {
 				TriggerInfo ** tmpPtr = new TriggerInfo *;
 				*tmpPtr = 0;
@@ -128,13 +122,6 @@ Event::Event( TTree *tree ) {
 Event::~Event() {
 	for (auto iter = variables.begin(); iter != variables.end(); ++iter)
 		delete *iter;
-
-	for (unsigned i = 0; i < VectorsInt.size(); ++i)
-		delete (VectorsInt[i].second);
-	for (unsigned i = 0; i < VectorsFloat.size(); ++i)
-		delete (VectorsFloat[i].second);
-	for (unsigned i = 0; i < VectorsDouble.size(); ++i)
-		delete (VectorsDouble[i].second);
 
 	for (unsigned i = 0; i < Triggers.size(); ++i)
 		delete (Triggers[i].second);
@@ -170,35 +157,6 @@ const VariableContainer * Event::getVariable(unsigned i) const {
 	else
 		throw string("ERROR: Event::getVariable(unsigned i) : Index out of bounds!");
 	return 0;
-}
-
-//==================================================================================
-
-const vector<int> * Event::getVectorIntAdr(const string & name) const {
-	for (unsigned i = 0; i < VectorsInt.size(); ++i) {
-		if ( VectorsInt[i].first == name )
-			return *(VectorsInt[i].second);
-	}
-	cout << "ERROR: Couldn't find " << name << " variable!" << endl;
-	exit( EXIT_FAILURE );
-}
-
-const vector<float> * Event::getVectorFloatAdr(const string & name) const {
-	for (unsigned i = 0; i < VectorsFloat.size(); ++i) {
-		if ( VectorsFloat[i].first == name )
-			return *(VectorsFloat[i].second);
-	}
-	cout << "ERROR: Couldn't find " << name << " variable!" << endl;
-	exit( EXIT_FAILURE );
-}
-
-const vector<double> * Event::getVectorDoubleAdr(const string & name) const {
-	for (unsigned i = 0; i < VectorsDouble.size(); ++i) {
-		if ( VectorsDouble[i].first == name )
-			return *(VectorsDouble[i].second);
-	}
-	cout << "ERROR: Couldn't find " << name << " variable!" << endl;
-	exit( EXIT_FAILURE );
 }
 
 //==================================================================================
