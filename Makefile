@@ -30,8 +30,8 @@ HEADERS = \
 		  triggerinfo.h \
 		  variableGetter.h
 CC = g++
-CFLAGS = -O3 -ansi -std=c++0x -Wall `root-config --cflags`
-LFLAGS = `root-config --libs`
+CFLAGS = -ansi -std=c++0x -Wall `root-config --cflags` -O3
+LFLAGS = `root-config --libs` -O3
 NAME = libHZZ2l2nu.a
 
 $(NAME) : $(OBJS)
@@ -46,7 +46,7 @@ event.o : event.cpp $(HEADERS)
 options.o : options.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c options.cpp
 
-preselectionCMG.o : preselectionCMG.cpp $(HEADERS)
+preselectionCMG.o : preselectionCMG.cpp $(HEADERS) eventPrinter.h
 	$(CC) $(CFLAGS) -c preselectionCMG.cpp
 
 toolbox.o : toolbox.cpp $(HEADERS) 
@@ -75,6 +75,9 @@ photon.o : photon.cpp $(HEADERS)
 
 toolsCMG.o : toolsCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c toolsCMG.cpp
+
+eventPrinter.o : eventPrinter.cpp $(HEADERS) eventPrinter.h
+	$(CC) $(CFLAGS) -c eventPrinter.cpp
 
 Dictionary.cpp : triggerinfo.h LinkDef.h
 	rootcint -v -f Dictionary.cpp -c triggerinfo.h LinkDef.h

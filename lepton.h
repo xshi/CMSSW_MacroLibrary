@@ -37,6 +37,7 @@ class Lepton {
 				float ensf_, float ensferr_, float d0_, float dZ_, float ip3d_, float trkpt_, float trketa_, float trkphi_,
 				float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_ );		
 		TLorentzVector lorentzVector() const;
+		double detIsolation(double rho) const;
 };
 
 #endif // LEPTON_H

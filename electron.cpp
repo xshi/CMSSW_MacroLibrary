@@ -53,7 +53,7 @@ bool Electron::isEE() const {
 }
 
 bool Electron::isInCrack() const {
-	double abseta = fabs(lorentzVector().Eta());
+	double abseta = fabs(sceta);
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 double Electron::effAreaMC(double eta) {
@@ -212,6 +212,10 @@ bool Electron::passesTightTriggerID() const {
 			return true;
 	}
 	return false;
+}
+
+bool Electron::passes2011ID() const {
+	return (0x1 << 0) & idbits;
 }
 
 bool Electron::passesMvaTriggerPreselection() const {

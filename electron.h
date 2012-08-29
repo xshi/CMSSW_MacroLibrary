@@ -56,6 +56,7 @@ class Electron : public Lepton {
 		bool passesMediumID() const;
 		bool passesTightID() const;
 		bool passesTightTriggerID() const;
+		bool passes2011ID() const;
 		bool passesMvaTriggerPreselection() const;
 };
 

@@ -13,6 +13,8 @@
 #include <TLorentzVector.h>
 #include "toolbox.h"
 #include "toolsCMG.h"
+#include "jet.h"
+#include "eventPrinter.h"
 #include <TRandom.h>
 
 using std::cout;
@@ -43,11 +45,18 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 	const int * runP = ev.getSVA<int>("run"); 
 	const int * lumiP = ev.getSVA<int>("lumi"); 
 	const int * eventP = ev.getSVA<int>("event"); 
+	const bool * trigP = ev.getSVA<bool>("hasTrigger");
 	const float * metPtA = ev.getAVA<float>("met_pt");
 	const float * metPhiA = ev.getAVA<float>("met_phi");
-	const float * rhoP = ev.getSVA<float>("rho25");
+	const float * rhoP = ev.getSVA<float>("rho");
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
+
+	EventPrinter evPrint(ev, "events.txt");
+//	evPrint.readInEvents("myEvents.txt");
+//	evPrint.printElectrons();
+//	evPrint.printMuons();
+	evPrint.printHeader();
 
 	string outputFile( opt.checkStringOption("outpath") );
 	size_t pos = outputFile.find(".root");
@@ -159,7 +168,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		run = *runP;
 		lumi = *lumiP;
 		event = *eventP;
-
+		if (! *trigP)
+			continue;
 //		cout << run << ":" << lumi << ":" << event << endl;
 //		if (isData) {
 //			if (!triggerAccept(ev, type))
@@ -175,11 +185,18 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		vector<Electron> selectedElectrons;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
-					&& electrons[j].isPFIsolatedVeto(rho, isData) )
+			bool isIsolated = (electrons[j].detIsolation(rho) < 0.1);
+//			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
+//					&& isIsolated )
+//				looseElectrons.push_back(electrons[j]);
+//			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
+//					&& isIsolated && electrons[j].passesTightTriggerID() ) {
+//				selectedElectrons.push_back(electrons[j]);
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passes2011ID()
+					&& isIsolated )
 				looseElectrons.push_back(electrons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
-					&& electrons[j].isPFIsolatedMedium(rho, isData) ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passes2011ID()
+					&& isIsolated ) {
 				selectedElectrons.push_back(electrons[j]);
 			}
 		}
@@ -189,18 +206,21 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		vector<Muon> selectedMuons;
 		for (unsigned j = 0; j < muons.size(); ++j) {
 			TLorentzVector lv = muons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() && muons[j].isPFIsolatedLoose() ) {
+			bool isIsolated = (muons[j].detIsolation(rho) < 0.15);
+//			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() && isIsolated ) {
+//				looseMuons.push_back(muons[j]);
+//			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
+//				softMuons.push_back(muons[j]);
+//			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && isIsolated ) {
+//				selectedMuons.push_back(muons[j]);
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isVBTF2011() && isIsolated ) {
 				looseMuons.push_back(muons[j]);
-			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
+			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoft2011() )
 				softMuons.push_back(muons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && muons[j].isPFIsolatedLoose() ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isVBTF2011() && isIsolated ) {
 				selectedMuons.push_back(muons[j]);
 			}
 		}
-
-//		int nLeptons = looseElectrons.size() + looseMuons.size() + softMuons.size();
-//		if ( nLeptons > 2 )
-//			continue;
 
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
@@ -227,9 +247,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
 		TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
 
-//		if (lep1.Pt() < 20 || lep2.Pt() < 20)
-//			continue;
-
 		if (lep2.Pt() > lep1.Pt()) {
 			TLorentzVector temp = lep1;
 			lep1 = lep2;
@@ -248,8 +265,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		zpt = Zcand.Pt();
 		zeta = Zcand.Eta();
 		zmass = Zcand.M();
-//		if (zmass < 76.1876 || zmass > 106.1876 || zpt < 55)
-//			continue;
 
 		vector<Jet> jets = selectJetsCMG( ev, jetVars );
 		TLorentzVector jetDiff = smearJets( jets );
@@ -268,34 +283,42 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		double mt2 = e * e - pt2;
 		mt = (mt2 > 0) ? sqrt(mt2) : 0;
 
-		nsoftjet = 0;
 		nhardjet = 0;
+		nsoftjet = 0;
 		vector<Jet> hardjets;
+		vector<Jet> softjets;
 		maxJetBTag = -999;
 		minDeltaPhiJetMet = 999;
 		for ( unsigned j = 0; j < jets.size(); ++j ) {
 			TLorentzVector jet = jets[j].lorentzVector();
-			if ( jet.Pt() > 15 )
-				nsoftjet++;
 			if ( jet.Pt() > 30 ) {
 				hardjets.push_back( jets[j] );
-			}
-			if ( jets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
-				maxJetBTag = jets[j].btag;
+			} else if ( jet.Pt() > 15 )
+				softjets.push_back( jets[j] );
+		}
+		nhardjet = hardjets.size();
+		nsoftjet = softjets.size();
+		for ( unsigned j = 0; j < hardjets.size(); ++j ) {
+			TLorentzVector jet = hardjets[j].lorentzVector();
+			if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
+				maxJetBTag = hardjets[j].btag;
 			double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
 			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
 				minDeltaPhiJetMet = tempDelPhiJetMet;
 		}
-		nhardjet = hardjets.size();
-//		if (nsoftjet == 0)
-//			continue;
-//		if (maxJetBTag > 0.275)
-//			continue;
+		if (!nhardjet && nsoftjet) {
+			for ( unsigned j = 0; j < softjets.size(); ++j ) {
+				TLorentzVector jet = softjets[j].lorentzVector();
+				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+					minDeltaPhiJetMet = tempDelPhiJetMet;
+			}
+		}
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
 					return a.lorentzVector().Eta() < b.lorentzVector().Eta();
-					});
+				});
 			for (unsigned j = 0; j < hardjets.size() - 1; ++j) {
 				TLorentzVector jet1 = hardjets[j].lorentzVector();
 				TLorentzVector jet2 = hardjets[j + 1].lorentzVector();
@@ -329,6 +352,10 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		nvtx = *nvtxP;
 
 		ni = *niP;
+
+		evPrint.setElectronCollection(electrons);
+		evPrint.setMuonCollection(muons);
+		evPrint.print();
 		
 		smallTree->Fill();
 	}
@@ -569,14 +596,15 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 		const SingleVariableContainer<int> * pidC = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(leptonVars.l2_pid));
 		int pid = pidC->getVal();
 
+
 		Electron tmp(px->getVal(), py->getVal(), pz->getVal(), en->getVal(), ptErr->getVal(), ecalIso->getVal(), hcalIso->getVal(), trkIso->getVal(), gIso->getVal(),
-				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l2_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
+				chIso->getVal(), puchIso->getVal(), nhIso->getVal(), l1_id->getVal(), genid->getVal(), ensf->getVal(), ensferr->getVal(), d0->getVal(), dZ->getVal(), ip3d->getVal(),
 				trkpt->getVal(), trketa->getVal(), trkphi->getVal(), trkchi2->getVal(), trkValidPixelHits->getVal(), trkValidTrackerHits->getVal(),
 				trkLostInnerHits->getVal(), e_idbits->getVal(pid), e_hoe->getVal(pid), e_dphiin->getVal(pid), e_detain->getVal(pid),
 				e_sihih->getVal(pid), e_sipip->getVal(pid), e_r9->getVal(pid), e_sce->getVal(pid), e_sceta->getVal(pid), e_scphi->getVal(pid), e_e2x5max->getVal(pid),
 				e_e1x5->getVal(pid), e_e5x5->getVal(pid), e_h2te->getVal(pid), e_h2tebc->getVal(pid), e_ooemoop->getVal(pid), e_fbrem->getVal(pid),
 				e_eopin->getVal(pid), e_dEtaCalo->getVal(pid), e_kfchi2->getVal(pid), e_kfhits->getVal(pid), e_etawidth->getVal(pid), e_phiwidth->getVal(pid),
-				e_e1x5e5x5->getVal(pid), e_preShowerOverRaw->getVal(pid), e_eopout->getVal(pid));
+				e_e1x5e5x5->getVal(pid), e_preShowerOverRaw->getVal(pid), e_eopout->getVal(pid) );
 		electrons.push_back(tmp);
 	}
 

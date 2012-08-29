@@ -1,5 +1,8 @@
 #include "lepton.h"
 #include "TLorentzVector.h"
+#include <cmath>
+
+using std::max;
 
 Lepton::Lepton( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
 				float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
@@ -35,4 +38,10 @@ Lepton::Lepton( float px_, float py_, float pz_, float en_, float ptErr_, float 
 
 TLorentzVector Lepton::lorentzVector() const {
 	return TLorentzVector(px, py, pz, en);
+}
+
+double Lepton::detIsolation(double rho) const {
+	double rhoPr = max(rho, 0.0);
+	double calIso = max(ecalIso + hcalIso - rhoPr * M_PI * 0.3 * 0.3, 0.0);
+	return (trkIso + calIso) / lorentzVector().Pt();
 }

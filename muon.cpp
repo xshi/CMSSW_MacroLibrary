@@ -71,3 +71,11 @@ bool Muon::isPFIsolatedTight() const {
 	double pfIsol = (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
 	return pfIsol < 0.12;
 }
+
+bool Muon::isVBTF2011() const {
+	return (0x1 << 12) & idbits;
+}
+
+bool Muon::isSoft2011() const {
+	return (0x1 << 13) & idbits;
+}
