@@ -1,9 +1,37 @@
-OBJS = cut.o event.o options.o preselectionCMG.o toolbox.o triggerinfo.o toolbox.o variableGetter.o lepton.o electron.o muon.o jet.o toolsCMG.o Dictionary.o
+OBJS = \
+	   cut.o \
+	   electron.o \
+	   event.o \
+	   jet.o \
+	   lepton.o \
+	   muon.o \
+	   options.o \
+	   photon.o \
+	   preselectionCMG.o \
+	   toolbox.o \
+	   toolbox.o \
+	   toolsCMG.o \
+	   triggerinfo.o \
+	   variableGetter.o \
+	   Dictionary.o
 OUT = libHZZ2l2nu.a
-HEADERS = cut.h event.h options.h preselectionCMG.h toolbox.h triggerinfo.h variableGetter.h lepton.h electron.h muon.h jet.h toolsCMG.h
+HEADERS = \
+		  cut.h \
+		  electron.h \
+		  event.h \
+		  jet.h \
+		  lepton.h \
+		  muon.h \
+		  options.h \
+		  photon.h \
+		  preselectionCMG.h \
+		  toolbox.h \
+		  toolsCMG.h \
+		  triggerinfo.h \
+		  variableGetter.h
 CC = g++
-CFLAGS = -g -ansi -std=c++0x -Wall `root-config --cflags` -pg
-LFLAGS = `root-config --libs` -pg
+CFLAGS = -O3 -ansi -std=c++0x -Wall `root-config --cflags`
+LFLAGS = `root-config --libs`
 NAME = libHZZ2l2nu.a
 
 $(NAME) : $(OBJS)
@@ -41,6 +69,9 @@ muon.o : muon.cpp $(HEADERS)
 
 jet.o : jet.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c jet.cpp
+
+photon.o : photon.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c photon.cpp
 
 toolsCMG.o : toolsCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c toolsCMG.cpp

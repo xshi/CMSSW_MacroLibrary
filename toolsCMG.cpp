@@ -137,6 +137,25 @@ JetVariables::JetVariables(const Event & ev) {
 	j_genpt = ev.findVariableIndex("ajn_genpt");
 }
 
+PhotonVariables::PhotonVariables(const Event & ev) {
+	gn = ev.findVariableIndex("gn");
+	g_px = ev.findVariableIndex("g_px");
+	g_py = ev.findVariableIndex("g_py");
+	g_pz = ev.findVariableIndex("g_pz");
+	g_en = ev.findVariableIndex("g_en");
+	g_iso1 = ev.findVariableIndex("g_iso1");
+	g_iso2 = ev.findVariableIndex("g_iso2");
+	g_iso3 = ev.findVariableIndex("g_iso3");
+	g_sihih = ev.findVariableIndex("g_sihih");
+	g_sipip = ev.findVariableIndex("g_sipip");
+	g_r9 = ev.findVariableIndex("g_r9");
+	g_hoe = ev.findVariableIndex("g_hoe");
+	g_htoe = ev.findVariableIndex("g_htoe");
+	g_corren = ev.findVariableIndex("g_corren");
+	g_correnerr = ev.findVariableIndex("g_correnerr");
+	g_idbits = ev.findVariableIndex("g_idbits");
+}
+
 MCVariables::MCVariables(const Event & ev) {
 	mcparticles = ev.findVariableIndex("nmcparticles");
 	mc_px = ev.findVariableIndex("mc_px");

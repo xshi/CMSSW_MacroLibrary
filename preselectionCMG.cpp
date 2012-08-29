@@ -1,26 +1,19 @@
-// ROOT Libraries
-#include <TFile.h>
-#include <TLorentzVector.h>
-#include <TRandom.h>
-#include <TH1D.h>
-// Standard Libraries
-//#include <cmath>
-#include <iostream>
-#include <iomanip>
 #include <algorithm>
-//#include <vector>
-//#include <string>
-//#include <sstream>
-// Other
-#include "preselectionCMG.h"
-#include "event.h"
-#include "options.h"
-//#include "triggerinfo.h"
-#include "toolbox.h"
-#include "muon.h"
 #include "electron.h"
-#include "toolsCMG.h"
+#include "event.h"
+#include <iomanip>
+#include <iostream>
 #include "jet.h"
+#include "muon.h"
+#include "options.h"
+#include "photon.h"
+#include "preselectionCMG.h"
+#include <TFile.h>
+#include <TH1D.h>
+#include <TLorentzVector.h>
+#include "toolbox.h"
+#include "toolsCMG.h"
+#include <TRandom.h>
 
 using std::cout;
 using std::cin;
@@ -702,101 +695,36 @@ Jet smearedJet(const Jet & origJet) {
 	return smearedJet;
 }
 
-/*
-void selectPhotons(const Event & ev, vector<unsigned> & photons) {
-	const vector<float> & pt = *ev.getVectorFloatAdr("Photons_PT");
-	const vector<float> & eta = *ev.getVectorFloatAdr("Photons_superClusterETA");
-	const vector<int> & pixSeed = *ev.getVectorIntAdr("Photons_hasPixelSeed");
-	const vector<float> & sigIeIe = *ev.getVectorFloatAdr("Photons_sigmaIetaIeta");
-	const vector<float> & hOe = *ev.getVectorFloatAdr("Photons_hadronicOverEm");
-	const vector<float> & trkIso = *ev.getVectorFloatAdr("Photons_TRACKISO");
-	const vector<float> & ecalIso = *ev.getVectorFloatAdr("Photons_ECALISO");
-	const vector<float> & hcalIso = *ev.getVectorFloatAdr("Photons_HCALISO");
 
-	photons.clear();
-	const unsigned nPhot = pt.size();
-	for ( unsigned i = 0; i < nPhot; ++i ) {
-		if ( pt[i] > 55 &&
-				fabs(eta[i]) < 1.4442 &&
-				pixSeed[i] == 0 &&
-				sigIeIe[i] > 0.001 &&
-				sigIeIe[i] < 0.013 &&
-				hOe[i] < 0.05 &&
-				trkIso[i] < (2.0 + 0.001 * pt[i]) &&
-				ecalIso[i] < (4.2 + 0.006 * pt[i]) &&
-				hcalIso[i] < (2.2 + 0.0025 * pt[i])
-		) {
-			photons.push_back( i );
-		}
-	}
-	const vector<float> & pt = *ev.getVectorFloatAdr("Photons_PT");
-	const vector<float> & eta = *ev.getVectorFloatAdr("Photons_superClusterETA");
-	const vector<float> & r9 = *ev.getVectorFloatAdr("Photons_R9");
-	const vector<float> & IsoSumOverEt = *ev.getVectorFloatAdr("Photons_IsoSumOverEt");
-	const vector<float> & IsoSumOverEtWorst = *ev.getVectorFloatAdr("Photons_IsoSumOverEtWorst");
-	const vector<float> & TrkIsoOverEt = *ev.getVectorFloatAdr("Photons_TrkIsoOverEt");
-	const vector<float> & sigIeIe = *ev.getVectorFloatAdr("Photons_sigmaIetaIeta");
-	const vector<float> & hOe = *ev.getVectorFloatAdr("Photons_hadronicOverEm");
-	const vector<float> & delR = *ev.getVectorFloatAdr("Photons_dREleTrack");
-	const vector<float> & nLostHits = *ev.getVectorFloatAdr("Photons_nLostHitsEleTrack");
+vector<Photon> selectPhotonsCMG(const Event & ev, const PhotonVariables & photonVars) {
 
-	photons.clear();
-	const unsigned nPhot = pt.size();
-	for ( unsigned i = 0; i < nPhot; ++i ) {
-		bool cat1 = (fabs(eta[i]) < 1.4442) && (r9[i] > 0.94);
-		bool cat2 = (fabs(eta[i]) < 1.4442) && (r9[i] <= 0.94);
-		bool cat3 = (fabs(eta[i]) > 1.566 && fabs(eta[i]) < 2.5) && (r9[i] > 0.94);
-		bool cat4 = (fabs(eta[i]) > 1.566 && fabs(eta[i]) < 2.5) && (r9[i] <= 0.94);
-		
-		bool passID = false;
-		if ( pt[i] > 55 ) {
-			if ( cat1 ) {
-				if ( IsoSumOverEt[i] < 3.8 &&
-						IsoSumOverEtWorst[i] < 11.7 &&
-						TrkIsoOverEt[i] < 3.5 &&
-						sigIeIe[i] < 0.0106 &&
-						hOe[i] < 0.082 &&
-						r9[i] > 0.94 )
-					passID = true;
-			}
-			if ( cat2 ) {
-				if ( IsoSumOverEt[i] < 2.2 &&
-						IsoSumOverEtWorst[i] < 3.4 &&
-						TrkIsoOverEt[i] < 2.2 &&
-						sigIeIe[i] < 0.0097 &&
-						hOe[i] < 0.062 &&
-						r9[i] > 0.36
-						// && delR[i] < 0.062
-						)
-					passID = true;
-			}
-			if ( cat3 ) {
-				if ( IsoSumOverEt[i] < 1.77 &&
-						IsoSumOverEtWorst[i] < 3.9 &&
-						TrkIsoOverEt[i] < 2.3 &&
-						sigIeIe[i] < 0.028 &&
-						hOe[i] < 0.065 &&
-						r9[i] > 0.94 )
-					passID = true;
-			}
-			if ( cat4 ) {
-				if ( IsoSumOverEt[i] < 1.29 &&
-						IsoSumOverEtWorst[i] < 1.84 &&
-						TrkIsoOverEt[i] < 1.45 &&
-						sigIeIe[i] < 0.027 &&
-						hOe[i] < 0.048 &&
-						r9[i] > 0.32 )
-					passID = true;
-			}
-		}
-		bool passEleVeto = true;
-		if ( delR[i] < 0.5 && nLostHits[i] == 0 )
-			passEleVeto = false;
-		if (passID && passEleVeto)
-			photons.push_back( i );
+	const SingleVariableContainer<int> * gn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(photonVars.gn));
+	const ArrayVariableContainer<float> * g_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_px));
+	const ArrayVariableContainer<float> * g_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_py));
+	const ArrayVariableContainer<float> * g_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_pz));
+	const ArrayVariableContainer<float> * g_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_en));
+	const ArrayVariableContainer<float> * g_iso1 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_iso1));
+	const ArrayVariableContainer<float> * g_iso2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_iso2));
+	const ArrayVariableContainer<float> * g_iso3 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_iso3));
+	const ArrayVariableContainer<float> * g_sihih = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_sihih));
+	const ArrayVariableContainer<float> * g_sipip = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_sipip));
+	const ArrayVariableContainer<float> * g_r9 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_r9));
+	const ArrayVariableContainer<float> * g_hoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_hoe));
+	const ArrayVariableContainer<float> * g_htoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_htoe));
+	const ArrayVariableContainer<float> * g_corren = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_corren));
+	const ArrayVariableContainer<float> * g_correnerr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_correnerr));
+	const ArrayVariableContainer<float> * g_idbits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_idbits));
+
+	vector<Photon> photons;
+	for ( int i = 0; i < gn->getVal(); ++i ) {
+		Photon tmpPhoton(g_px->getVal(i), g_py->getVal(i), g_pz->getVal(i), g_en->getVal(i), g_iso1->getVal(i), g_iso2->getVal(i), g_iso3->getVal(i), g_sihih->getVal(i),
+				g_sipip->getVal(i), g_r9->getVal(i), g_hoe->getVal(i), g_htoe->getVal(i), g_corren->getVal(i), g_correnerr->getVal(i), g_idbits->getVal(i));
+		photons.push_back(tmpPhoton);
 	}
+	return photons;
 }
 
+/*
 bool triggerAccept( const Event & ev, double pt, double & weight ) {
 	bool hlt50 = (ev.getSingleVariableValue<int>("HLT_Photon50_CaloIdVL_accept") == 1);
 	bool hlt50i = (ev.getSingleVariableValue<int>("HLT_Photon50_CaloIdVL_IsoL_accept") == 1);

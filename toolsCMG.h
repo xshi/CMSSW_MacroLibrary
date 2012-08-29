@@ -147,6 +147,27 @@ struct JetVariables {
 	JetVariables(const Event & ev);
 };
 
+struct PhotonVariables {
+	unsigned gn;
+	unsigned g_px;
+	unsigned g_py;
+	unsigned g_pz;
+	unsigned g_en;
+	unsigned g_iso1;
+	unsigned g_iso2;
+	unsigned g_iso3;
+	unsigned g_sihih;
+	unsigned g_sipip;
+	unsigned g_r9;
+	unsigned g_hoe;
+	unsigned g_htoe;
+	unsigned g_corren;
+	unsigned g_correnerr;
+	unsigned g_idbits;
+	
+	PhotonVariables(const Event & ev);
+};
+
 struct MCVariables {
 	unsigned mcparticles;
 	unsigned mc_px;
