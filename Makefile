@@ -2,6 +2,7 @@ OBJS = \
 	   cut.o \
 	   electron.o \
 	   event.o \
+	   eventPrinter.o \
 	   jet.o \
 	   lepton.o \
 	   muon.o \
@@ -19,6 +20,7 @@ HEADERS = \
 		  cut.h \
 		  electron.h \
 		  event.h \
+		  eventPrinter.h \
 		  jet.h \
 		  lepton.h \
 		  muon.h \
@@ -31,7 +33,7 @@ HEADERS = \
 		  variableGetter.h
 CC = g++
 CFLAGS = -ansi -std=c++0x -Wall `root-config --cflags` -O3
-LFLAGS = `root-config --libs` -O3
+LFLAGS = `root-config --libs` -O3 -ansi -std=c++0x -Wall
 NAME = libHZZ2l2nu.a
 
 $(NAME) : $(OBJS)
@@ -42,6 +44,9 @@ cut.o : cut.cpp $(HEADERS)
 
 event.o : event.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c event.cpp
+
+eventPrinter.o : eventPrinter.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c eventPrinter.cpp
 
 options.o : options.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c options.cpp
@@ -75,9 +80,6 @@ photon.o : photon.cpp $(HEADERS)
 
 toolsCMG.o : toolsCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c toolsCMG.cpp
-
-eventPrinter.o : eventPrinter.cpp $(HEADERS) eventPrinter.h
-	$(CC) $(CFLAGS) -c eventPrinter.cpp
 
 Dictionary.cpp : triggerinfo.h LinkDef.h
 	rootcint -v -f Dictionary.cpp -c triggerinfo.h LinkDef.h

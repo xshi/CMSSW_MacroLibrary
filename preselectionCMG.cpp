@@ -30,6 +30,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		cout << "Entering ElectronPreselection() ..." << endl;
 	else if (type == MU)
 		cout << "Entering MuonPreselection() ..." << endl;
+	else if (type == PHOT)
+		cout << "Entering PhotonPreselection() ..." << endl;
 
 	TFile * file = new TFile( opt.checkStringOption("inpath").c_str() );
 	if (!file->IsOpen())
@@ -42,6 +44,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 	ElectronVariables electronVars( ev );
 	MuonVariables muonVars( ev );
 	JetVariables jetVars(ev);
+	PhotonVariables photonVars(ev);
 	const int * runP = ev.getSVA<int>("run"); 
 	const int * lumiP = ev.getSVA<int>("lumi"); 
 	const int * eventP = ev.getSVA<int>("event"); 
@@ -67,6 +70,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		outputFile += "_elePresel.root";
 	else if (type == MU)
 		outputFile += "_muPresel.root";
+	else if (type == PHOT)
+		outputFile += "_phPresel.root";
 	
 	cout << outputFile << endl;
 	TFile * out = new TFile( outputFile.c_str(), "recreate" );
@@ -222,6 +227,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 			}
 		}
 
+		vector<Photon> photons = selectPhotonsCMG( ev, photonVars );
+
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
 		if (type == ELE) {
@@ -238,33 +245,44 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 			   selectedLeptons[0] = &selectedMuons[0];
 			   selectedLeptons[1] = &selectedMuons[1];
 			}
+		} else if (type == PHOT) {
+			if (photons.size() != 1 || looseElectrons.size() || looseMuons.size() || softMuons.size())
+				continue;
 		}
 
 		nele = looseElectrons.size();
 		nmu = looseMuons.size();
 		nsoftmu = softMuons.size();
 
-		TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
-		TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
 
-		if (lep2.Pt() > lep1.Pt()) {
-			TLorentzVector temp = lep1;
-			lep1 = lep2;
-			lep2 = temp;
+		TLorentzVector Zcand;
+
+		if (type == ELE || type == MU) {
+			TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
+			TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
+
+			if (lep2.Pt() > lep1.Pt()) {
+				TLorentzVector temp = lep1;
+				lep1 = lep2;
+				lep2 = temp;
+			}
+
+			l1pt = lep1.Pt();
+			l1eta = lep1.Eta();
+			l1phi = lep1.Phi();
+
+			l2pt = lep2.Pt();
+			l2eta = lep2.Eta();
+			l2phi = lep2.Phi();
+
+			Zcand = lep1 + lep2;
+			zmass = Zcand.M();
+		} else if (type == PHOT) {
+			Zcand = photons[0].lorentzVector();
 		}
 
-		l1pt = lep1.Pt();
-		l1eta = lep1.Eta();
-		l1phi = lep1.Phi();
-
-		l2pt = lep2.Pt();
-		l2eta = lep2.Eta();
-		l2phi = lep2.Phi();
-
-		TLorentzVector Zcand = lep1 + lep2;
 		zpt = Zcand.Pt();
 		zeta = Zcand.Eta();
-		zmass = Zcand.M();
 
 		vector<Jet> jets = selectJetsCMG( ev, jetVars );
 		TLorentzVector jetDiff = smearJets( jets );
