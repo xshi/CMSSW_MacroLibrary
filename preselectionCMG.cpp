@@ -25,7 +25,7 @@ using std::vector;
 using std::stringstream;
 using std::setw;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) {
+void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	if (type == ELE)
 		cout << "Entering ElectronPreselection() ..." << endl;
 	else if (type == MU)
@@ -132,7 +132,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 	smallTree->Branch( "NVTX", &nvtx, "NVTX/I" );
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
 
-	// bool isData = opt.checkBoolOption("isData");
+	bool isData = opt.checkBoolOption("isData");
 
 	unsigned long nentries = tree->GetEntries();
 	//unsigned long nentries = 10000;
@@ -190,18 +190,11 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		vector<Electron> selectedElectrons;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
-			bool isIsolated = (electrons[j].detIsolation(rho) < 0.1);
-//			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
-//					&& isIsolated )
-//				looseElectrons.push_back(electrons[j]);
-//			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
-//					&& isIsolated && electrons[j].passesTightTriggerID() ) {
-//				selectedElectrons.push_back(electrons[j]);
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passes2011ID()
-					&& isIsolated )
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
+					&& electrons[j].isPFIsolatedVeto(rho, isData) )
 				looseElectrons.push_back(electrons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passes2011ID()
-					&& isIsolated ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
+					&& electrons[j].isPFIsolatedMedium(rho, isData) && electrons[j].passesTightTriggerID() ) {
 				selectedElectrons.push_back(electrons[j]);
 			}
 		}
@@ -211,18 +204,11 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData ) 
 		vector<Muon> selectedMuons;
 		for (unsigned j = 0; j < muons.size(); ++j) {
 			TLorentzVector lv = muons[j].lorentzVector();
-			bool isIsolated = (muons[j].detIsolation(rho) < 0.15);
-//			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() && isIsolated ) {
-//				looseMuons.push_back(muons[j]);
-//			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
-//				softMuons.push_back(muons[j]);
-//			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && isIsolated ) {
-//				selectedMuons.push_back(muons[j]);
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isVBTF2011() && isIsolated ) {
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon() && muons[j].isPFIsolatedLoose() ) {
 				looseMuons.push_back(muons[j]);
-			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoft2011() )
+			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
 				softMuons.push_back(muons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isVBTF2011() && isIsolated ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && muons[j].isPFIsolatedTight() ) {
 				selectedMuons.push_back(muons[j]);
 			}
 		}
