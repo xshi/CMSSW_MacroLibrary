@@ -29,7 +29,7 @@ using std::vector;
 using std::stringstream;
 using std::setw;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w = nullptr ) {
+void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w ) {
 	if (type == ELE)
 		cout << "Entering ElectronPreselection() ..." << endl;
 	else if (type == MU)

@@ -32,7 +32,7 @@ HEADERS = \
 		  triggerinfo.h \
 		  variableGetter.h
 CC = g++
-CFLAGS = -ansi -std=c++0x -Wall `root-config --cflags` -O3
+CFLAGS = -ansi -std=c++0x -Wall -O3 `root-config --cflags` -I$(ROOFITSYS)/include
 LFLAGS = `root-config --libs` -O3 -ansi -std=c++0x -Wall
 NAME = libHZZ2l2nu.a
 
