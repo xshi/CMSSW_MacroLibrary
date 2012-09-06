@@ -19,8 +19,9 @@ class Options;
 class Photon;
 class PhotonVariables;
 class TLorentzVector;
+class RooWorkspace;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type, bool isData );
+void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * massPeak );
 Jet smearedJet(const Jet & origJet);
 TLorentzVector smearJets(std::vector<Jet> & jets);
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);

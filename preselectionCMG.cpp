@@ -16,6 +16,10 @@
 #include "jet.h"
 #include "eventPrinter.h"
 #include <TRandom.h>
+#include <RooAbsPdf.h>
+#include <RooWorkspace.h>
+#include <RooDataSet.h>
+#include <RooRealVar.h>
 
 using std::cout;
 using std::cin;
@@ -25,7 +29,7 @@ using std::vector;
 using std::stringstream;
 using std::setw;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
+void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w = nullptr ) {
 	if (type == ELE)
 		cout << "Entering ElectronPreselection() ..." << endl;
 	else if (type == MU)
@@ -135,7 +139,16 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 	bool isData = opt.checkBoolOption("isData");
 
 	unsigned long nentries = tree->GetEntries();
-	//unsigned long nentries = 10000;
+
+	RooDataSet * events = nullptr;
+	if (type == PHOT) {
+		if (w == nullptr)
+			throw string("ERROR: No mass peak pdf!");
+		RooRealVar * zmass = w->var("mass");
+		RooAbsPdf * pdf = w->pdf("massPDF");
+		events = pdf->generate(*zmass, nentries);
+	}
+
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 		if ( iEvent % 10000 == 0) {
 			cout << string(40, '\b');
@@ -232,7 +245,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			   selectedLeptons[1] = &selectedMuons[1];
 			}
 		} else if (type == PHOT) {
-			if (photons.size() != 1 || looseElectrons.size() || looseMuons.size() || softMuons.size())
+			if (photons.size() < 1)
 				continue;
 		}
 
@@ -265,6 +278,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type ) {
 			zmass = Zcand.M();
 		} else if (type == PHOT) {
 			Zcand = photons[0].lorentzVector();
+			zmass = events->get(iEvent)->getRealValue("mass");
 		}
 
 		zpt = Zcand.Pt();
@@ -745,10 +759,34 @@ vector<Photon> selectPhotonsCMG(const Event & ev, const PhotonVariables & photon
 	const ArrayVariableContainer<float> * g_htoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_htoe));
 	const ArrayVariableContainer<float> * g_corren = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_corren));
 	const ArrayVariableContainer<float> * g_correnerr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_correnerr));
-	const ArrayVariableContainer<float> * g_idbits = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(photonVars.g_idbits));
+	const ArrayVariableContainer<int> * g_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(photonVars.g_idbits));
 
 	vector<Photon> photons;
 	for ( int i = 0; i < gn->getVal(); ++i ) {
+//		cout << gn->getVal() << endl;
+//		cout << i << endl;
+//		cout << g_px->getVal(i) << endl;
+//		cout << g_py->getVal(i) << endl;
+//		cout << g_pz->getVal(i) << endl;
+//		cout << g_en->getVal(i) << endl;
+//		cout << g_iso1->getVal(i) << endl;
+//		cout << g_iso2->getVal(i) << endl;
+//		cout << g_iso3->getVal(i) << endl;
+//		cout << g_sihih->getVal(i) << endl;
+//		cout << g_sipip->getVal(i) << endl;
+//		cout << "Test 2.0" << endl;
+//		cout << g_r9->getVal(i) << endl;
+//		cout << "Test 2.1" << endl;
+//		cout << g_hoe->getVal(i) << endl;
+//		cout << "Test 2.2" << endl;
+//		cout << g_htoe->getVal(i) << endl;
+//		cout << "Test 2.3" << endl;
+//		cout << g_corren->getVal(i) << endl;
+//		cout << "Test 2.4" << endl;
+//		cout << g_correnerr->getVal(i) << endl;
+//		cout << "Test 2.5" << endl;
+//		cout << g_idbits->getVal(i) << endl;
+//		cout << "Test 2.6" << endl;
 		Photon tmpPhoton(g_px->getVal(i), g_py->getVal(i), g_pz->getVal(i), g_en->getVal(i), g_iso1->getVal(i), g_iso2->getVal(i), g_iso3->getVal(i), g_sihih->getVal(i),
 				g_sipip->getVal(i), g_r9->getVal(i), g_hoe->getVal(i), g_htoe->getVal(i), g_corren->getVal(i), g_correnerr->getVal(i), g_idbits->getVal(i));
 		photons.push_back(tmpPhoton);

@@ -13,6 +13,8 @@ class Options {
 		void readOptions(int argc, const char * argv[]);
 		bool checkBoolOption(const std::string & name) const;
 		const std::string & checkStringOption(const std::string & name) const;
+		void addBoolOption(const std::string & opt);
+		void addStringOption( const std::string & name, const std::string & value );
 };
 
 #endif

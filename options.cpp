@@ -48,3 +48,11 @@ const string & Options::checkStringOption(const std::string & name) const {
 	cout << "ERROR: Unknown option: " << name << "!" << endl;
 	exit(EXIT_FAILURE);
 }
+
+void Options::addBoolOption(const string & opt) {
+	boolOptions.push_back(opt);
+}
+
+void Options::addStringOption( const std::string & name, const std::string & value ) {
+	stringOptions.push_back( make_pair(name, value) );
+}
