@@ -87,7 +87,7 @@ RooZPtPdf.o : RooZPtPdf.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c RooZPtPdf.cpp
 
 Dictionary.cpp : triggerinfo.h RooZPtPdf.h LinkDef.h
-	rootcint -v -f Dictionary.cpp -c triggerinfo.h RooZPtPdf.h LinkDef.h
+	rootcint -v -f Dictionary.cpp -c -I$(ROOFITSYS)/include triggerinfo.h RooZPtPdf.h LinkDef.h
 Dictionary.o : Dictionary.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c Dictionary.cpp -o Dictionary.o
 

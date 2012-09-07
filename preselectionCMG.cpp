@@ -58,6 +58,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const float * rhoP = ev.getSVA<float>("rho");
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
+	const int * cat = ev.getSVA<int>("cat"); 
 
 	EventPrinter evPrint(ev, "events.txt");
 //	evPrint.readInEvents("myEvents.txt");
@@ -108,6 +109,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	double mjj;
 	int nvtx;
 	int ni;
+	int phPrescale;
 
 	TTree * smallTree = new TTree("HZZ2l2nuAnalysis", "HZZ2l2nu Analysis Tree");
 	smallTree->Branch( "Run", &run, "Run/i" );
@@ -135,6 +137,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	smallTree->Branch( "MJJ", &mjj, "MJJ/D" );
 	smallTree->Branch( "NVTX", &nvtx, "NVTX/I" );
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
+	smallTree->Branch( "PhotonPresecale" , &phPrescale, "PhotonPrescale/I" );
 
 	bool isData = opt.checkBoolOption("isData");
 
@@ -182,10 +185,27 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		mjj = -999;
 		nvtx = -999;
 		ni = -999;
+		phPrescale = -999;
 
 		run = *runP;
 		lumi = *lumiP;
 		event = *eventP;
+
+		if (type == ELE && (*cat) != 2)
+			continue;
+		if (type == MU && (*cat) != 1)
+			continue;
+		if (type == PHOT) {
+			if ( (*cat) < 10)
+				continue;
+			else {
+				cout << *cat << endl;
+				phPrescale = ((*cat) - 22) / 1000;
+				cout << phPrescale << endl;
+				cin.get();
+			}
+		}
+
 		if (! *trigP)
 			continue;
 //		cout << run << ":" << lumi << ":" << event << endl;
