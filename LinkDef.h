@@ -6,5 +6,6 @@
 #pragma link off all extern;
 
 #pragma link C++ class TriggerInfo+;
+#pragma link C++ class RooZPtPdf+;
 
 #endif   
