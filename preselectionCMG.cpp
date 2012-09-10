@@ -783,30 +783,6 @@ vector<Photon> selectPhotonsCMG(const Event & ev, const PhotonVariables & photon
 
 	vector<Photon> photons;
 	for ( int i = 0; i < gn->getVal(); ++i ) {
-//		cout << gn->getVal() << endl;
-//		cout << i << endl;
-//		cout << g_px->getVal(i) << endl;
-//		cout << g_py->getVal(i) << endl;
-//		cout << g_pz->getVal(i) << endl;
-//		cout << g_en->getVal(i) << endl;
-//		cout << g_iso1->getVal(i) << endl;
-//		cout << g_iso2->getVal(i) << endl;
-//		cout << g_iso3->getVal(i) << endl;
-//		cout << g_sihih->getVal(i) << endl;
-//		cout << g_sipip->getVal(i) << endl;
-//		cout << "Test 2.0" << endl;
-//		cout << g_r9->getVal(i) << endl;
-//		cout << "Test 2.1" << endl;
-//		cout << g_hoe->getVal(i) << endl;
-//		cout << "Test 2.2" << endl;
-//		cout << g_htoe->getVal(i) << endl;
-//		cout << "Test 2.3" << endl;
-//		cout << g_corren->getVal(i) << endl;
-//		cout << "Test 2.4" << endl;
-//		cout << g_correnerr->getVal(i) << endl;
-//		cout << "Test 2.5" << endl;
-//		cout << g_idbits->getVal(i) << endl;
-//		cout << "Test 2.6" << endl;
 		Photon tmpPhoton(g_px->getVal(i), g_py->getVal(i), g_pz->getVal(i), g_en->getVal(i), g_iso1->getVal(i), g_iso2->getVal(i), g_iso3->getVal(i), g_sihih->getVal(i),
 				g_sipip->getVal(i), g_r9->getVal(i), g_hoe->getVal(i), g_htoe->getVal(i), g_corren->getVal(i), g_correnerr->getVal(i), g_idbits->getVal(i));
 		photons.push_back(tmpPhoton);

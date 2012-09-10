@@ -34,78 +34,70 @@ Event::Event( TTree *tree ) {
 			exit( EXIT_FAILURE );
 		}
 
-//		cout << varName << endl;
 		int leafLength = leafPointer->GetLen();
-//		leafPointer->Print();
-//		cout << leafLength << endl;
-//		if (leafPointer->GetMaximum() > leafLength)
-//			leafLength = leafPointer->GetMaximum();
-//		cout << leafLength << endl;
 		TLeaf * leafCount = leafPointer->GetLeafCount();
 		if (leafCount && leafCount->GetMaximum() > leafLength) {
 			leafLength = leafCount->GetMaximum();
-//			leafCount->Print();
 		}
-//		cout << leafLength << endl;
-//		std::cin.get();
+		bool array = (leafCount || leafLength > 1);
 
 		if ( leafPointer->GetBranch()->GetClassName() != string("")
 				&& string(leafPointer->GetTypeName()) != string(leafPointer->GetBranch()->GetClassName()) )
 			continue;
 		if( leafPointer ) {
-			if ( leafPointer->GetTypeName() == string("UInt_t") && leafLength == 1 ) {
+			if ( leafPointer->GetTypeName() == string("UInt_t") && !array ) {
 				SingleVariableContainer<unsigned> * tempWrapper = new SingleVariableContainer<unsigned>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Int_t") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Int_t") && !array ) {
 				SingleVariableContainer<int> * tempWrapper = new SingleVariableContainer<int>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Float_t") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Float_t") && !array ) {
 				SingleVariableContainer<float> * tempWrapper = new SingleVariableContainer<float>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Double_t") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Double_t") && !array ) {
 				SingleVariableContainer<double> * tempWrapper = new SingleVariableContainer<double>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Bool_t") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Bool_t") && !array ) {
 				SingleVariableContainer<bool> * tempWrapper = new SingleVariableContainer<bool>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("UInt_t") && leafLength > 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("UInt_t") && array ) {
 				ArrayVariableContainer<unsigned> * tempWrapper = new ArrayVariableContainer<unsigned>(varName, leafLength);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Int_t") && leafLength > 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Int_t") && array ) {
 				ArrayVariableContainer<int> * tempWrapper = new ArrayVariableContainer<int>(varName, leafLength);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Float_t") && leafLength > 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Float_t") && array ) {
 				ArrayVariableContainer<float> * tempWrapper = new ArrayVariableContainer<float>(varName, leafLength);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Double_t") && leafLength > 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Double_t") && array ) {
 				ArrayVariableContainer<double> * tempWrapper = new ArrayVariableContainer<double>(varName, leafLength);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("Bool_t") && leafLength > 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("Bool_t") && array ) {
 				ArrayVariableContainer<bool> * tempWrapper = new ArrayVariableContainer<bool>(varName, leafLength);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("vector<int>") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("vector<int>") && !array ) {
 				VectorVariableContainer<int> * tempWrapper = new VectorVariableContainer<int>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("vector<float>") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("vector<float>") && !array ) {
 				VectorVariableContainer<float> * tempWrapper = new VectorVariableContainer<float>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("vector<double>") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("vector<double>") && !array ) {
 				VectorVariableContainer<double> * tempWrapper = new VectorVariableContainer<double>(varName);
 				tree->SetBranchAddress( varName.c_str(), tempWrapper->getPtrToPtr() );
 				variables.push_back(tempWrapper);
-			} else if ( leafPointer->GetTypeName() == string("TriggerInfo") && leafLength == 1 ) {
+			} else if ( leafPointer->GetTypeName() == string("TriggerInfo") && !array ) {
 				TriggerInfo ** tmpPtr = new TriggerInfo *;
 				*tmpPtr = 0;
 				tree->SetBranchAddress( leafPointer->GetBranch()->GetName(), tmpPtr );
