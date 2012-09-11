@@ -148,6 +148,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		if (w == nullptr)
 			throw string("ERROR: No mass peak pdf!");
 		RooRealVar * zmass = w->var("mass");
+		zmass->setRange(76.0, 106.0);
 		RooAbsPdf * pdf = w->pdf("massPDF");
 		events = pdf->generate(*zmass, nentries);
 	}
@@ -224,10 +225,13 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
 			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
-					&& electrons[j].isPFIsolatedVeto(rho, isData) )
+//					&& electrons[j].isPFIsolatedVeto(rho, isData) )
+					&& electrons[j].pfIsolation(rho, isData) < 0.15 ) {
 				looseElectrons.push_back(electrons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID()
-					&& electrons[j].isPFIsolatedMedium(rho, isData) && electrons[j].passesTightTriggerID() ) {
+			}
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID() && electrons[j].passesTightTriggerID()
+//					&& electrons[j].isPFIsolatedMedium(rho, isData) ) {
+					&& electrons[j].pfIsolation(rho, isData) < 0.15 ) {
 				selectedElectrons.push_back(electrons[j]);
 			}
 		}

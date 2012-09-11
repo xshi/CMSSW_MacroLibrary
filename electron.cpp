@@ -59,37 +59,37 @@ bool Electron::isInCrack() const {
 double Electron::effAreaMC(double eta) {
 	double abseta = fabs(eta);
 	if (abseta < 1.0)
-		return 0.11;
+		return 0.18;
 	else if (abseta < 1.479)
-		return 0.13;
+		return 0.21;
 	else if (abseta < 2.0)
-		return 0.089;
-	else if (abseta < 2.2)
-		return 0.13;
-	else if (abseta < 2.3)
-		return 0.15;
-	else if (abseta < 2.4)
 		return 0.16;
+	else if (abseta < 2.2)
+		return 0.22;
+	else if (abseta < 2.3)
+		return 0.27;
+	else if (abseta < 2.4)
+		return 0.30;
 	else
-		return 0.19;
+		return 0.41;
 }
 
 double Electron::effAreaDATA(double eta) {
 	double abseta = fabs(eta);
 	if (abseta < 1.0)
-		return 0.10;
+		return 0.19;
 	else if (abseta < 1.479)
-		return 0.12;
+		return 0.25;
 	else if (abseta < 2.0)
-		return 0.085;
+		return 0.12;
 	else if (abseta < 2.2)
-		return 0.11;
+		return 0.21;
 	else if (abseta < 2.3)
-		return 0.12;
+		return 0.27;
 	else if (abseta < 2.4)
-		return 0.12;
+		return 0.44;
 	else
-		return 0.13;
+		return 0.52;
 }
 
 double Electron::pfIsolation(double rho, bool isData) const {
