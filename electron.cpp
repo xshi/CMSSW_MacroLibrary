@@ -96,10 +96,10 @@ double Electron::pfIsolation(double rho, bool isData) const {
 	double rhoPr = max(rho, 0.0);
 	double eta = fabs(sceta);
 	double nIso;
-	if (isData)
+//	if (isData)
 		nIso = max(nhIso + gIso - rhoPr * effAreaDATA(eta), 0.0);
-	else
-		nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
+//	else
+//		nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
 	return (nIso + chIso) / lorentzVector().Pt();
 }
 

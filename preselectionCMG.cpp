@@ -192,23 +192,23 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		lumi = *lumiP;
 		event = *eventP;
 
-		if (type == ELE && (*cat) != 2)
+		if (type == ELE && (*cat) != 2) {
 			continue;
-		if (type == MU && (*cat) != 1)
+		}
+		if (type == MU && (*cat) != 1) {
 			continue;
+		}
 		if (type == PHOT) {
-			if ( (*cat) < 10)
+			if ( (*cat) < 10) {
 				continue;
-			else {
-				cout << *cat << endl;
+			} else {
 				phPrescale = ((*cat) - 22) / 1000;
-				cout << phPrescale << endl;
-				cin.get();
 			}
 		}
 
-		if (! *trigP)
+		if (! *trigP) {
 			continue;
+		}
 //		cout << run << ":" << lumi << ":" << event << endl;
 //		if (isData) {
 //			if (!triggerAccept(ev, type))
@@ -224,14 +224,16 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		vector<Electron> selectedElectrons;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesVetoID()
-//					&& electrons[j].isPFIsolatedVeto(rho, isData) )
-					&& electrons[j].pfIsolation(rho, isData) < 0.15 ) {
+			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack()
+					&& electrons[j].passesVetoID()
+					&& electrons[j].pfIsolation(rho, isData) < 0.15
+					) {
 				looseElectrons.push_back(electrons[j]);
 			}
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack() && electrons[j].passesMediumID() && electrons[j].passesTightTriggerID()
-//					&& electrons[j].isPFIsolatedMedium(rho, isData) ) {
-					&& electrons[j].pfIsolation(rho, isData) < 0.15 ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack()
+					&& electrons[j].passesMediumID()
+					&& electrons[j].pfIsolation(rho, isData) < 0.15
+					) {
 				selectedElectrons.push_back(electrons[j]);
 			}
 		}
@@ -255,22 +257,23 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
 		if (type == ELE) {
-			if (selectedElectrons.size() < 2)
+			if (selectedElectrons.size() < 2) {
 				continue;
-		   else {
-			   selectedLeptons[0] = &selectedElectrons[0];
-			   selectedLeptons[1] = &selectedElectrons[1];
-		   }
+			} else {
+				selectedLeptons[0] = &selectedElectrons[0];
+				selectedLeptons[1] = &selectedElectrons[1];
+			}
 		} else if (type == MU) {
-			if (selectedMuons.size() < 2)
+			if (selectedMuons.size() < 2) {
 				continue;
-			else {
-			   selectedLeptons[0] = &selectedMuons[0];
-			   selectedLeptons[1] = &selectedMuons[1];
+			} else {
+				selectedLeptons[0] = &selectedMuons[0];
+				selectedLeptons[1] = &selectedMuons[1];
 			}
 		} else if (type == PHOT) {
-			if (photons.size() < 1)
+			if (photons.size() < 1) {
 				continue;
+			}
 		}
 
 		nele = looseElectrons.size();
