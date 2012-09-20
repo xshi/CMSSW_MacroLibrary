@@ -16,17 +16,19 @@
 
 //ClassImp(RooZPtPdf);
 
-RooZPtPdf::RooZPtPdf(const char *name, const char *title, RooAbsReal & _zpt, RooAbsReal & _a, RooAbsReal & _b, RooAbsReal & _c) :
+RooZPtPdf::RooZPtPdf(const char *name, const char *title, RooAbsReal & _zpt, RooAbsReal & _a, RooAbsReal & _b, RooAbsReal & _c, RooAbsReal & _d, RooAbsReal & _e, RooAbsReal & _f) :
 						RooAbsPdf(name,title), zpt("zpt", "zpt", this, _zpt), a("a", "a", this, _a),
-						b("b", "b", this, _b), c("c", "c", this, _c) {} 
+						b("b", "b", this, _b), c("c", "c", this, _c), d("d", "d", this, _d), e("e", "e", this, _e), f("f", "f", this, _f) {} 
 
 RooZPtPdf::RooZPtPdf(const RooZPtPdf& other, const char* name) : 
 						RooAbsPdf(other,name), zpt("zpt",this,other.zpt), a("a",this,other.a),
-						b("b",this,other.b), c("c",this,other.c) {}
+						b("b",this,other.b), c("c",this,other.c), d("d",this,other.d), e("e",this,other.e), f("f",this,other.f) {}
 
 
 
 Double_t RooZPtPdf::evaluate() const { 
 	// ENTER EXPRESSION IN TERMS OF VARIABLE ARGUMENTS HERE 
-	return TMath::Exp(a*zpt*zpt+b*TMath::Sqrt(zpt*zpt*zpt)+c*zpt);
+	Double_t logzpt = TMath::Log(zpt);
+	return TMath::Exp(a + b*logzpt + c*logzpt*logzpt + d*logzpt*logzpt*logzpt);
+	//return TMath::Exp(a*TMath::Cos(b*logzpt + c) + d);
 }

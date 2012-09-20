@@ -56,6 +56,7 @@ bool Electron::isInCrack() const {
 	double abseta = fabs(sceta);
 	return (abseta > 1.4442 && abseta < 1.566);
 }
+
 double Electron::effAreaMC(double eta) {
 	double abseta = fabs(eta);
 	if (abseta < 1.0)

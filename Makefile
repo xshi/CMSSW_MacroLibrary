@@ -8,6 +8,7 @@ OBJS = \
 	   muon.o \
 	   options.o \
 	   photon.o \
+	   photonPrescale.o \
 	   preselectionCMG.o \
 	   toolbox.o \
 	   toolbox.o \
@@ -27,6 +28,7 @@ HEADERS = \
 		  muon.h \
 		  options.h \
 		  photon.h \
+		  photonPrescale.h \
 		  preselectionCMG.h \
 		  toolbox.h \
 		  toolsCMG.h \
@@ -79,6 +81,9 @@ jet.o : jet.cpp $(HEADERS)
 
 photon.o : photon.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c photon.cpp
+
+photonPrescale.o : photonPrescale.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c photonPrescale.cpp
 
 toolsCMG.o : toolsCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c toolsCMG.cpp

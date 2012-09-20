@@ -1,5 +1,13 @@
 #include "photon.h"
+#include "toolbox.h"
+#include "jet.h"
 #include "TLorentzVector.h"
+#include <iostream>
+
+using std::vector;
+using std::cout;
+using std::endl;
+using std::cin;
 
 Photon::Photon( float px_, float py_, float pz_, float en_, float iso1_, float iso2_, float iso3_, float sihih_, float sipip_,
 			 float r9_, float hoe_, float htoe_, float corren_, float correnerr_, int idbits_ ) :
@@ -23,20 +31,46 @@ TLorentzVector Photon::lorentzVector() const {
 	return TLorentzVector(px, py, pz, en);
 }
 
-bool Photon::isSelected() {
+double Photon::eta() const {
+	return lorentzVector().Eta();
+}
+
+bool Photon::isEB() const {
+	return fabs(eta()) < 1.479;
+}
+
+bool Photon::isEE() const {
+	return fabs(eta()) > 1.479 && fabs(eta()) < 2.5;
+}
+
+bool Photon::isInCrack() const {
+	double abseta = fabs(eta());
+	return (abseta > 1.4442 && abseta < 1.566);
+}
+
+bool Photon::isSelected(double rho) {
 	TLorentzVector vec = lorentzVector();
-	bool hasPixSeed = !(idbits & (0x1 << 0));
-	if ( vec.Pt() > 55 &&
-			fabs(vec.Eta()) < 1.4442 &&
-			hasPixSeed == 0 &&
-			sihih > 0.001 &&
-			sihih < 0.013 &&
-			hoe < 0.05 &&
-			iso1 < (2.0 + 0.001 * vec.Pt()) &&
-			iso2 < (4.2 + 0.006 * vec.Pt()) &&
-			iso3 < (2.2 + 0.0025 * vec.Pt())
-	   )
-		return true;
+	bool noPixSeed = (idbits & (0x1 << 0));
+	if ( vec.Pt() > 25 && fabs(vec.Eta()) < 2.5 && !isInCrack() && noPixSeed && hoe < 0.05 ) {
+		if (isEB()) {
+			if ( sihih < 0.011 &&
+					iso1 < (2.0 + 0.001 * vec.Pt() + 0.0167 * rho) &&
+					iso2 < (4.2 + 0.006 * vec.Pt() + 0.183 * rho) &&
+					iso3 < (2.2 + 0.0025 * vec.Pt() + 0.062 * rho) &&
+					// spike cleaning
+					sihih > 0.001 &&
+					sipip > 0.001
+			   )
+				return true;
+		} else {
+			if ( sihih < 0.03 &&
+					iso1 < (2.0 + 0.001 * vec.Pt() + 0.032 * rho) &&
+					iso2 < (4.2 + 0.006 * vec.Pt() + 0.090 * rho) &&
+					iso3 < (2.2 + 0.0025 * vec.Pt() + 0.180 * rho)
+			   )
+				return true;
+		}
+	}
 	return false;
 
 //	const vector<float> & pt = *ev.getVectorFloatAdr("Photons_PT");

@@ -1,7 +1,10 @@
+#include <vector>
+
 #ifndef PHOTON_H
 #define PHOTON_H
 
 class TLorentzVector;
+class Jet;
 
 class Photon {
 	public :
@@ -24,7 +27,11 @@ class Photon {
 		Photon( float px_, float py_, float pz_, float en_, float iso1_, float iso2_, float iso3_, float sihih_, float sipip_,
 			 float r9_, float hoe_, float htoe_, float corren_, float correnerr_, int idbits_ );
 		TLorentzVector lorentzVector() const;
-		bool isSelected();
+		bool isEB() const;
+		bool isEE() const;
+		bool isInCrack() const;
+		double eta() const;
+		bool isSelected(double rho);
 };
 
 #endif // PHOTON_H
