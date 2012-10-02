@@ -57,8 +57,8 @@ bool Electron::isInCrack() const {
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
-double Electron::effAreaMC(double eta) {
-	double abseta = fabs(eta);
+double Electron::effAreaMC() const {
+	double abseta = fabs(sceta);
 	if (abseta < 1.0)
 		return 0.18;
 	else if (abseta < 1.479)
@@ -75,8 +75,9 @@ double Electron::effAreaMC(double eta) {
 		return 0.41;
 }
 
-double Electron::effAreaDATA(double eta) {
-	double abseta = fabs(eta);
+double Electron::effAreaDATA() const {
+	double abseta = fabs(lorentzVector().Eta());
+	//double abseta = fabs(eta);
 	if (abseta < 1.0)
 		return 0.19;
 	else if (abseta < 1.479)
@@ -95,10 +96,10 @@ double Electron::effAreaDATA(double eta) {
 
 double Electron::pfIsolation(double rho, bool isData) const {
 	double rhoPr = max(rho, 0.0);
-	double eta = fabs(sceta);
+//	double eta = fabs(sceta);
 	double nIso;
 //	if (isData)
-		nIso = max(nhIso + gIso - rhoPr * effAreaDATA(eta), 0.0);
+		nIso = max(nhIso + gIso - rhoPr * effAreaDATA(), 0.0);
 //	else
 //		nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
 	return (nIso + chIso) / lorentzVector().Pt();

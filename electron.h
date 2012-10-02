@@ -44,8 +44,8 @@ class Electron : public Lepton {
 		bool isEB() const;
 		bool isEE() const;
 		bool isInCrack() const;
-		static double effAreaMC(double eta);
-		static double effAreaDATA(double eta);
+		double effAreaMC() const;
+		double effAreaDATA() const;
 		double pfIsolation(double rho, bool isData) const;
 		bool isPFIsolatedVeto(double rho, bool isData) const;
 		bool isPFIsolatedLoose(double rho, bool isData) const;

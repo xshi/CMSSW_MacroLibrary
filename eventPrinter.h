@@ -31,7 +31,9 @@ class EventPrinter {
 		std::string outputFileName;
 		std::ostream * output;
 		std::vector<const float *> floatVars;
+		std::vector<const int *> intVars;
 		std::vector<std::string> floatVarsNames;
+		std::vector<std::string> intVarsNames;
 		bool printEle;
 		const std::vector<Electron> * electrons;
 		bool printMu;

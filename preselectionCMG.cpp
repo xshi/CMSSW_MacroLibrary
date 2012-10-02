@@ -57,16 +57,17 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const bool * trigP = ev.getSVA<bool>("hasTrigger");
 	const float * metPtA = ev.getAVA<float>("met_pt");
 	const float * metPhiA = ev.getAVA<float>("met_phi");
+	//const float * rhoP = ev.getSVA<float>("rho25");
 	const float * rhoP = ev.getSVA<float>("rho");
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
 	const int * cat = ev.getSVA<int>("cat"); 
 
 	EventPrinter evPrint(ev, "events.txt");
-//	evPrint.readInEvents("myEvents.txt");
+//	evPrint.readInEvents("output1.txt");
 //	evPrint.printElectrons();
 //	evPrint.printMuons();
-	evPrint.printHeader();
+//	evPrint.printHeader();
 
 	string outputFile( opt.checkStringOption("outpath") );
 	size_t pos = outputFile.find(".root");
@@ -214,9 +215,11 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		event = *eventP;
 
 		if (type == ELE && (*cat) != 2) {
+			ncat++;
 			continue;
 		}
 		if (type == MU && (*cat) != 1) {
+			ncat++;
 			continue;
 		}
 		if (type == PHOT) {
@@ -398,11 +401,16 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			TLorentzVector jet = jets[j].lorentzVector();
 			if ( jet.Pt() > 30 ) {
 				hardjets.push_back( jets[j] );
-			} else if ( jet.Pt() > 15 )
+			}
+			if ( jet.Pt() > 15 )
 				softjets.push_back( jets[j] );
 		}
 		nhardjet = hardjets.size();
 		nsoftjet = softjets.size();
+		if ( type == PHOT && nsoftjet == 0 )
+			continue;
+
+		minDeltaPhiJetMet = 10;
 		for ( unsigned j = 0; j < hardjets.size(); ++j ) {
 			TLorentzVector jet = hardjets[j].lorentzVector();
 			if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
@@ -411,14 +419,14 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
 				minDeltaPhiJetMet = tempDelPhiJetMet;
 		}
-		if (!nhardjet && nsoftjet) {
-			for ( unsigned j = 0; j < softjets.size(); ++j ) {
-				TLorentzVector jet = softjets[j].lorentzVector();
-				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
-				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
-					minDeltaPhiJetMet = tempDelPhiJetMet;
-			}
-		}
+		//if (type == PHOT) {
+		//	for ( unsigned j = 0; j < softjets.size(); ++j ) {
+		//		TLorentzVector jet = softjets[j].lorentzVector();
+		//		double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+		//		if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+		//			minDeltaPhiJetMet = tempDelPhiJetMet;
+		//	}
+		//}
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
@@ -457,14 +465,14 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		nvtx = *nvtxP;
 
 		ni = *niP;
-
-		evPrint.setElectronCollection(electrons);
-		evPrint.setMuonCollection(muons);
-		evPrint.print();
 		
 		smallTree->Fill();
 
 		npass++;
+
+		evPrint.setElectronCollection(electrons);
+		evPrint.setMuonCollection(muons);
+		evPrint.print();
 	}
 	cout << endl;
 

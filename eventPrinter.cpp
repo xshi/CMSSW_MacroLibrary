@@ -25,7 +25,11 @@ EventPrinter::EventPrinter(const Event & ev, const string & fN) {
 	} else
 		output = &cout;
 	floatVars.push_back( ev.getSVA<float>("rho") );
+	floatVars.push_back( ev.getSVA<float>("rho25") );
+	intVars.push_back( ev.getSVA<int>("cat") );
 	floatVarsNames.push_back( "rho" );
+	floatVarsNames.push_back( "rho25" );
+	intVarsNames.push_back( "cat" );
 	printEle = false;
 	electrons = 0;
 	printMu = false;
@@ -42,13 +46,22 @@ void EventPrinter::printHeader() const {
 	(*output) << setw(10) << "RUN" << setw(10) << "LUMI" << setw(10) << "EVENT";
 	for (unsigned i = 0; i < floatVarsNames.size(); ++i)
 		(*output) << setw(10) << floatVarsNames[i];
+	for (unsigned i = 0; i < intVarsNames.size(); ++i)
+		(*output) << setw(10) << intVarsNames[i];
 	if (printEle) {
 		(*output) << setw(10) << "Ele Pt";
 		(*output) << setw(10) << "Ele Eta";
+		(*output) << setw(10) << "Ele E";
+		(*output) << setw(10) << "Ele px";
+		(*output) << setw(10) << "Ele py";
+		(*output) << setw(10) << "Ele pz";
 		(*output) << setw(10) << "sceta";
 		(*output) << setw(10) << "isInCrack";
 		(*output) << setw(10) << "MediumID";
-		(*output) << setw(10) << "2011IDBit";
+		(*output) << setw(10) << "pfIso";
+		(*output) << setw(10) << "gIso";
+		(*output) << setw(10) << "chIso";
+		(*output) << setw(10) << "nhIso";
 		(*output) << setw(10) << "isEB";
 		(*output) << setw(10) << "detain";
 		(*output) << setw(10) << "dphiin";
@@ -59,8 +72,6 @@ void EventPrinter::printHeader() const {
 		(*output) << setw(10) << "ooemoop";
 		(*output) << setw(10) << "VFP";
 		(*output) << setw(10) << "trkLostIn";
-		(*output) << setw(10) << "detIsol";
-		(*output) << setw(10) << "TriggerID";
 	}
 	if (printMu) {
 		(*output) << setw(10) << "Mu PT";
@@ -75,12 +86,17 @@ void EventPrinter::printHeader() const {
 void EventPrinter::print() const {
 	if ( useList && selectedEvents.find( EventAddress(*run, *lumi, *event) ) == selectedEvents.end() )
 		return;
-	output->precision(4);
+	output->precision(2);
+	(*output) << std::scientific;
 	int lineLength = 0;
 	(*output) << setw(10) << (*run) << setw(10) << (*lumi) << setw(10) << (*event);
 	lineLength += 30;
 	for (unsigned i = 0; i < floatVars.size(); ++i) {
 		(*output) << setw(10) << (*floatVars[i]);
+		lineLength += 10;
+	}
+	for (unsigned i = 0; i < intVars.size(); ++i) {
+		(*output) << setw(10) << (*intVars[i]);
 		lineLength += 10;
 	}
 	unsigned maxObjects = 0;
@@ -106,10 +122,17 @@ void EventPrinter::print() const {
 			if (i < electrons->size() ) {
 				(*output) << setw(10) << (*electrons)[i].lorentzVector().Pt();
 				(*output) << setw(10) << (*electrons)[i].lorentzVector().Eta();
+				(*output) << setw(10) << (*electrons)[i].en;
+				(*output) << setw(10) << (*electrons)[i].px;
+				(*output) << setw(10) << (*electrons)[i].py;
+				(*output) << setw(10) << (*electrons)[i].pz;
 				(*output) << setw(10) << (*electrons)[i].sceta;
 				(*output) << setw(10) << (*electrons)[i].isInCrack();
 				(*output) << setw(10) << (*electrons)[i].passesMediumID();
-				(*output) << setw(10) << (((*electrons)[i].idbits >> 0) & 0x1);
+				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[0], false);
+				(*output) << setw(10) << (*electrons)[i].gIso;
+				(*output) << setw(10) << (*electrons)[i].chIso;
+				(*output) << setw(10) << (*electrons)[i].nhIso;
 				(*output) << setw(10) << (*electrons)[i].isEB();
 				(*output) << setw(10) << (*electrons)[i].detain;
 				(*output) << setw(10) << (*electrons)[i].dphiin;
@@ -120,8 +143,6 @@ void EventPrinter::print() const {
 				(*output) << setw(10) << (*electrons)[i].ooemoop;
 				(*output) << setw(10) << (((*electrons)[i].idbits >> 5) & 0x1);
 				(*output) << setw(10) << (*electrons)[i].trkLostInnerHits;
-				(*output) << setw(10) << (*electrons)[i].detIsolation(*floatVars[0]);
-				(*output) << setw(10) << (*electrons)[i].passesTightTriggerID();
 			} else
 				(*output) << setw(electronsLength) << "";
 		}
