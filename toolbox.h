@@ -24,5 +24,10 @@ T max(T a, T b) {
 	else
 		return b;
 }
+double calculateParA(double a1, double b1, double c1, double b2, double c2, double x);
+double calculateParD(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double x);
+double myFunc(double a, double b, double c, double d, double x);
+double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
+		double b3, double c3, double b4, double c4, double zpt);
 
 #endif // EVENT_H

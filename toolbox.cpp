@@ -37,3 +37,49 @@ std::string double2string(double num) {
 	return temp.str();
 }
 
+double calculateParA(double a1, double b1, double c1, double b2, double c2, double x) {
+	double logx = log(x);
+	return a1*b1*sin(b1*logx + c1) / ( b2 * sin(b2*logx + c2) );
+}
+
+double calculateParD(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double x) {
+	double logx = log(x);
+	return a1*cos(b1*logx + c1) + d1 - a2*cos(b2*logx + c2);
+}
+
+double myFunc(double a, double b, double c, double d, double x) {
+	return exp(a * cos( b * log(x) + c) + d);
+}
+
+double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
+		double b3, double c3, double b4, double c4, double zpt) {
+
+	double x1 = 50;
+	double x2 = 70;
+	double x3 = 94;
+	if (zpt < x1) {
+		return myFunc(a1, b1, c1, d1, zpt);
+	} else {
+		double b2p = b1 + b2;
+		double c2p = c1 + c2;
+		double a2 = calculateParA(a1, b1, c1, b2p, c2p, x1);
+		double d2 = calculateParD(a1, b1, c1, d1, a2, b2p, c2p, x1);
+		if (zpt < x2) {
+			return myFunc(a2, b2p, c2p, d2, zpt);
+		} else {
+			double b3p = b2p + b3;
+			double c3p = c2p + c3;
+			double a3 = calculateParA(a2, b2p, c2p, b3p, c3p, x2);
+			double d3 = calculateParD(a2, b2p, c2p, d2, a3, b3p, c3p, x2);
+			if (zpt < x3) {
+				return myFunc(a3, b3p, c3p, d3, zpt);
+			} else {
+				double b4p = b3p + b4;
+				double c4p = c3p + c4;
+				double a4 = calculateParA(a3, b3p, c3p, b4p, c4p, x3);
+				double d4 = calculateParD(a3, b3p, c3p, d3, a4, b4p, c4p, x3);
+				return myFunc(a4, b4p, c4p, d4, zpt);
+			}
+		}
+	}
+}

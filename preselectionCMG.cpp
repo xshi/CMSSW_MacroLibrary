@@ -112,7 +112,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	double mjj;
 	int nvtx;
 	int ni;
-	int phPrescale;
+	double phPrescale;
 
 	TTree * smallTree = new TTree("HZZ2l2nuAnalysis", "HZZ2l2nu Analysis Tree");
 	smallTree->Branch( "Run", &run, "Run/i" );
@@ -140,7 +140,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	smallTree->Branch( "MJJ", &mjj, "MJJ/D" );
 	smallTree->Branch( "NVTX", &nvtx, "NVTX/I" );
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
-	smallTree->Branch( "PhotonPrescale" , &phPrescale, "PhotonPrescale/I" );
+	smallTree->Branch( "PhotonPrescale" , &phPrescale, "PhotonPrescale/D" );
 
 	bool isData = opt.checkBoolOption("isData");
 
