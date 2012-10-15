@@ -2,18 +2,18 @@
 #define OPTIONS_H
 
 #include <string>
-#include <vector>
+#include <map>
 
 class Options {
 	private:
-		std::vector<std::string> boolOptions;
-		std::vector<std::pair<std::string, std::string> > stringOptions;
+		std::map<std::string, bool> boolOptions;
+		std::map<std::string, std::string> stringOptions;
 	public:
 		Options();
-		void readOptions(int argc, const char * argv[]);
+		void readInOptions(const std::string & fileName);
 		bool checkBoolOption(const std::string & name) const;
 		const std::string & checkStringOption(const std::string & name) const;
-		void addBoolOption(const std::string & opt);
+		void addBoolOption(const std::string & name, bool value);
 		void addStringOption( const std::string & name, const std::string & value );
 };
 

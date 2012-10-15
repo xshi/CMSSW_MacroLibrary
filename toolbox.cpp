@@ -1,6 +1,10 @@
 #include "toolbox.h"
 #include <cmath>
 #include <sstream>
+#include "event.h"
+#include <string>
+
+using std::string;
 
 double min( double a, double b ) {
 	if (a < b)
@@ -81,5 +85,30 @@ double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
 				return myFunc(a4, b4p, c4p, d4, zpt);
 			}
 		}
+	}
+}
+
+unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample) {
+//	int nhardjet = ev.getSVV<int>("NHARDJET");
+//	int nsoftjet = ev.getSVV<int>("NSOFTJET");
+//	double delEta = ev.getSVV<double>("DETAJJ");
+//	double mjj = ev.getSVV<double>("MJJ");
+	bool vbf = (nhardjet == 2) && (delEta > 4.0) && (mjj > 500.0); 
+	bool cat1 = (nhardjet == 0);
+	if (isPhotonSample)
+		cat1 = cat1 && (nsoftjet == 0);
+	bool cat2 = (nhardjet >= 1) && !vbf;
+	if ( cat1 )
+		return 1;
+	else if ( cat2 )
+		return 2;
+	else if ( vbf )
+		return 3;
+	else {
+		//cout << nhardjet << endl;
+		//cout << nsoftjet << endl;
+		//cout << delEta << endl;
+		//cout << mjj << endl;
+		throw string("ERROR: Unrecognized category!");
 	}
 }

@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 
-enum PreselType { ELE, MU, PHOT }; 
+enum PreselType { ELE, MU, EMU, PHOT }; 
 
 class Electron;
 class ElectronVariables;

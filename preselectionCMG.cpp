@@ -33,15 +33,23 @@ using std::setw;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w ) {
 	if (type == ELE)
-		cout << "Entering ElectronPreselection() ..." << endl;
+		cout << "Running Electron Preselection :" << endl;
 	else if (type == MU)
-		cout << "Entering MuonPreselection() ..." << endl;
+		cout << "Running Muon Preselection :" << endl;
+	else if (type == EMU)
+		cout << "Running Electron-Muon Preselection() ..." << endl;
 	else if (type == PHOT)
-		cout << "Entering PhotonPreselection() ..." << endl;
+		cout << "Runnign Photon Preselection :" << endl;
 
-	TFile * file = new TFile( opt.checkStringOption("inpath").c_str() );
+	string inputDir = opt.checkStringOption("INPUT_DIR");
+	string outputDir = opt.checkStringOption("OUTPUT_DIR");
+	string sampleName = opt.checkStringOption("SAMPLE_NAME");
+	string inputFile = inputDir + '/' + sampleName + ".root";
+	cout << "\tInput file: " << inputFile << endl;
+
+	TFile * file = new TFile( inputFile.c_str() );
 	if (!file->IsOpen())
-		throw string("ERROR: Can't open the file: " + opt.checkStringOption("inpath") + "!");
+		throw string("ERROR: Can't open the file: " + inputFile + "!");
 	TDirectory * dir = (TDirectory *) file->Get("evAnalyzer");
 	TH1D * histo = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("cutflow");
 	TTree * tree = ( TTree * ) dir->Get( "data" );
@@ -64,24 +72,23 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const int * cat = ev.getSVA<int>("cat"); 
 
 	EventPrinter evPrint(ev, "events.txt");
-//	evPrint.readInEvents("output1.txt");
-//	evPrint.printElectrons();
-//	evPrint.printMuons();
-//	evPrint.printHeader();
+	//evPrint.readInEvents("output1.txt");
+	//evPrint.printElectrons();
+	//evPrint.printMuons();
+	//evPrint.printHeader();
 
-	string outputFile( opt.checkStringOption("outpath") );
-	size_t pos = outputFile.find(".root");
-	if ( pos != string::npos )
-		outputFile.erase(pos);
+	string outputFile = outputDir + '/' + sampleName;
 
 	if (type == ELE)
 		outputFile += "_elePresel.root";
 	else if (type == MU)
 		outputFile += "_muPresel.root";
+	else if (type == EMU)
+		outputFile += "_emuPresel.root";
 	else if (type == PHOT)
-		outputFile += ".root";
-	
-	cout << outputFile << endl;
+		outputFile += "_phPresel.root";
+	cout << "\tOutput file: " << outputFile << endl;
+
 	TFile * out = new TFile( outputFile.c_str(), "recreate" );
 	TH1D * outHisto = new TH1D("nevt", "nevt", 1, 0, 1);
 	outHisto->SetBinContent(1, histo->GetBinContent(1));
@@ -112,7 +119,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	double mjj;
 	int nvtx;
 	int ni;
-	double phPrescale;
+	int category;
+	double weight;
 
 	TTree * smallTree = new TTree("HZZ2l2nuAnalysis", "HZZ2l2nu Analysis Tree");
 	smallTree->Branch( "Run", &run, "Run/i" );
@@ -140,9 +148,10 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	smallTree->Branch( "MJJ", &mjj, "MJJ/D" );
 	smallTree->Branch( "NVTX", &nvtx, "NVTX/I" );
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
-	smallTree->Branch( "PhotonPrescale" , &phPrescale, "PhotonPrescale/D" );
+	smallTree->Branch( "CATEGORY", &category, "CATEGORY/I" );
+	smallTree->Branch( "Weight" , &weight, "Weight/D" );
 
-	bool isData = opt.checkBoolOption("isData");
+	bool isData = opt.checkBoolOption("DATA");
 
 	unsigned long nentries = tree->GetEntries();
 
@@ -165,16 +174,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 	}
 
-	int nev = 0;
-	int ncat = 0;
-	int nph = 0;
-	int nj = 0;
-	int npass = 0;
-	TH1D histoDR("histoDR", "histoDR", 100, 0, 0.1);
-
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
-
-		nev++;
 
 		if ( iEvent % 10000 == 0) {
 			cout << string(40, '\b');
@@ -208,27 +208,28 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		mjj = -999;
 		nvtx = -999;
 		ni = -999;
-		phPrescale = -999;
+		weight = -999;
+		category = -1;
 
 		run = *runP;
 		lumi = *lumiP;
 		event = *eventP;
 
 		if (type == ELE && (*cat) != 2) {
-			ncat++;
 			continue;
 		}
 		if (type == MU && (*cat) != 1) {
-			ncat++;
+			continue;
+		}
+		if (type == EMU && (*cat) != 3) {
 			continue;
 		}
 		if (type == PHOT) {
 			if ( (*cat) < 10) {
-				ncat++;
 				continue;
 			} else {
 				int trgThreshold = ((*cat) - 22) / 1000;
-				phPrescale = photonPrescales.getPrescale( run, lumi, trgThreshold );
+				weight = photonPrescales.getPrescale( run, lumi, trgThreshold );
 				//cout << setw(8) << run << setw(8) << lumi << setw(8) << trgThreshold << setw(8) << phPrescale << endl;
 				//cin.get();
 			}
@@ -294,7 +295,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 				for (unsigned j = 0; j < looseElectrons.size(); ++j) {
 					TLorentzVector elVec = looseElectrons[j].lorentzVector();
 					double dR = deltaR(phVec.Eta(), phVec.Phi(), elVec.Eta(), elVec.Phi());
-					histoDR.Fill(dR);
 					if ( dR > 0.05 )
 						tmpElectrons.push_back( looseElectrons[j] );
 				}
@@ -318,9 +318,15 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 				selectedLeptons[0] = &selectedMuons[0];
 				selectedLeptons[1] = &selectedMuons[1];
 			}
+		} else if (type == EMU) {
+			if (selectedElectrons.size() < 1 || selectedMuons.size() < 1) {
+				continue;
+			} else {
+				selectedLeptons[0] = &selectedElectrons[0];
+				selectedLeptons[1] = &selectedMuons[0];
+			}
 		} else if (type == PHOT) {
-			if (selectedPhotons.size() != 1 || looseElectrons.size() > 0 || looseMuons.size() > 0 || softMuons.size() > 0) {
-				nph++;
+			if (selectedPhotons.size() < 1) {
 				continue;
 			}
 		}
@@ -329,10 +335,9 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		nmu = looseMuons.size();
 		nsoftmu = softMuons.size();
 
-
 		TLorentzVector Zcand;
 
-		if (type == ELE || type == MU) {
+		if (type == ELE || type == MU || type == EMU) {
 			TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
 			TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
 
@@ -380,7 +385,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			throw std::string("Jet Corrections different from zero in DATA!");
 
 		TLorentzVector met;
-		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
+		met.SetPtEtaPhiM(metPtA[2], 0.0, metPhiA[2], 0.0);
 		met -= jetDiff;
 		pfmet = met.Pt();
 
@@ -391,8 +396,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		double mt2 = e * e - pt2;
 		mt = (mt2 > 0) ? sqrt(mt2) : 0;
 
-		nhardjet = 0;
-		nsoftjet = 0;
 		vector<Jet> hardjets;
 		vector<Jet> softjets;
 		maxJetBTag = -999;
@@ -419,14 +422,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
 				minDeltaPhiJetMet = tempDelPhiJetMet;
 		}
-		//if (type == PHOT) {
-		//	for ( unsigned j = 0; j < softjets.size(); ++j ) {
-		//		TLorentzVector jet = softjets[j].lorentzVector();
-		//		double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
-		//		if ( tempDelPhiJetMet < minDeltaPhiJetMet )
-		//			minDeltaPhiJetMet = tempDelPhiJetMet;
-		//	}
-		//}
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
@@ -465,25 +460,32 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		nvtx = *nvtxP;
 
 		ni = *niP;
+
+		category = evCategory(nhardjet, nsoftjet, detajj, mjj, type == PHOT);
+
+		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
+			continue;
+		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == PHOT) && ((nele + nmu + nsoftmu) > 0) )
+			continue;
+		if ( opt.checkBoolOption("ZPT_CUT") && zpt < 30 )
+			continue;
+		// for different background estimation methods different window should be applied:
+		// * sample for photons should have 76.2 < zmass < 106.2
+		// * sample for non-resonant background should not have this cut applied
+		if ( opt.checkBoolOption("TIGHT_ZMASS_CUT") && (type == ELE || type == MU) && (zmass < 76.2 || zmass > 106.2))
+			continue;
+		if ( opt.checkBoolOption("WIDE_ZMASS_CUT") && (type == ELE || type == MU) && (zmass < 76.2 || zmass > 106.2))
+			continue;
+		if ( opt.checkBoolOption("BTAG_CUT") && ( maxJetBTag > 0.275) )
+			continue;
 		
 		smallTree->Fill();
-
-		npass++;
 
 		evPrint.setElectronCollection(electrons);
 		evPrint.setMuonCollection(muons);
 		evPrint.print();
 	}
 	cout << endl;
-
-	cout << "nev = " << nev << endl;
-	cout << "ncat = " << ncat << endl;
-	cout << "nph = " << nph << endl;
-	cout << "nj = " << nj << endl;
-	cout << "npass = " << npass << endl;
-	TCanvas canv("canv", "canv", 800, 600);
-	histoDR.Draw();
-	canv.SaveAs("DR.ps");
 
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);

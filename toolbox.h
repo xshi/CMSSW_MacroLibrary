@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+class Event;
+
 double min( double a, double b );
 double max( double a, double b );
 double deltaPhi( double phi1, double phi2 );
@@ -29,5 +31,5 @@ double calculateParD(double a1, double b1, double c1, double d1, double a2, doub
 double myFunc(double a, double b, double c, double d, double x);
 double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
 		double b3, double c3, double b4, double c4, double zpt);
-
+unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample);
 #endif // EVENT_H
