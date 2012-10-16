@@ -30,8 +30,10 @@ class RooZPtPdf : public RooAbsPdf {
 				RooAbsReal & _c4
 				);
 		RooZPtPdf(const RooZPtPdf& other, const char* name = 0) ;
-		virtual TObject* clone(const char* newname) const { return new RooZPtPdf(*this, newname); }
+		inline virtual TObject* clone(const char* newname) const { return new RooZPtPdf(*this, newname); }
 		inline virtual ~RooZPtPdf() { }
+		Double_t evaluate() const ;
+		ClassDef(RooZPtPdf,2);
 	protected:
 		RooRealProxy zpt ;
 		RooRealProxy a1;
@@ -44,10 +46,6 @@ class RooZPtPdf : public RooAbsPdf {
 		RooRealProxy c3;
 		RooRealProxy b4;
 		RooRealProxy c4;
-
-		Double_t evaluate() const ;
-	private:
-		ClassDef(RooZPtPdf,2);
 };
 
 #endif

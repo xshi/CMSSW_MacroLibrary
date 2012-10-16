@@ -16,6 +16,7 @@ OBJS = \
 	   triggerinfo.o \
 	   variableGetter.o \
 	   RooZPtPdf.o \
+	   RooCMSShape.o \
 	   Dictionary.o
 OUT = libHZZ2l2nu.a
 HEADERS = \
@@ -34,7 +35,8 @@ HEADERS = \
 		  toolsCMG.h \
 		  triggerinfo.h \
 		  variableGetter.h \
-		  RooZPtPdf.h
+		  RooZPtPdf.h \
+		  RooCMSShape.h
 CC = g++
 CFLAGS = -ansi -std=c++0x -Wall -O3 `root-config --cflags` -I$(ROOFITSYS)/include
 LFLAGS = `root-config --libs` -O3 -ansi -std=c++0x -Wall
@@ -91,8 +93,11 @@ toolsCMG.o : toolsCMG.cpp $(HEADERS)
 RooZPtPdf.o : RooZPtPdf.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c RooZPtPdf.cpp
 
+RooCMSShape.o : RooCMSShape.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c RooCMSShape.cpp
+
 Dictionary.cpp : triggerinfo.h RooZPtPdf.h LinkDef.h
-	rootcint -v -f Dictionary.cpp -c -I$(ROOFITSYS)/include triggerinfo.h RooZPtPdf.h LinkDef.h
+	rootcint -v -f Dictionary.cpp -c -I$(ROOFITSYS)/include triggerinfo.h RooZPtPdf.h RooCMSShape.h LinkDef.h
 Dictionary.o : Dictionary.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c Dictionary.cpp -o Dictionary.o
 
