@@ -1,28 +1,8 @@
-/*****************************************************************************
- * Project: CMS detector at the CERN
- *
- * Package: PhysicsTools/TagAndProbe/RooCMSShape
- *
- *
- * Authors:
- *   Nadia Adam, Princeton - neadam@princeton.edu
- *   Adam Hunt, Princeton  - ahunt@princeton.edu
- *   Kalanand Mishra, Fermilab - kalanand@fnal.gov
- *
- * Description:
- *   Defines a probability density function which has exponential decay 
- *   distribution at high mass beyond the pole position (say, Z peak)  
- *   but turns over (i.e., error function) at low mass due to threshold 
- *   effect. We use this to model the background shape in Z->ll invariant 
- *   mass.
- * History:
- *   
- *
- *****************************************************************************/
-
+#include <Riostream.h>
 #include "RooCMSShape.h"
+#include <RooMath.h>
 
-//ClassImp(RooCMSShape) 
+ClassImp(RooCMSShape) 
 
 RooCMSShape::RooCMSShape(const char *name, const char *title, RooAbsReal& _x, RooAbsReal& _alpha,
 		RooAbsReal& _beta, RooAbsReal& _gamma, RooAbsReal& _peak) :

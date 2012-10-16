@@ -7,5 +7,6 @@
 
 #pragma link C++ class TriggerInfo+;
 #pragma link C++ class RooZPtPdf+;
+#pragma link C++ class RooCMSShape+;
 
 #endif   

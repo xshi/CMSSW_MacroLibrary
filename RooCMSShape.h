@@ -23,33 +23,34 @@
 #ifndef ROOCMSSHAPE
 #define ROOCMSSHAPE
 
-#include "RooAbsPdf.h"
-#include "RooRealProxy.h"
-#include "RooAbsReal.h"
-#include "TMath.h"
-#include "RooMath.h"
+#include <RooAbsPdf.h>
+#include <RooRealProxy.h>
+#include <RooCategoryProxy.h>
+#include <RooAbsReal.h>
+#include <RooAbsCategory.h>
 
 class RooCMSShape : public RooAbsPdf {
 	public:
 		RooCMSShape() {};
 		RooCMSShape(const char *name, const char *title,
-				RooAbsReal& _x,
-				RooAbsReal& _alpha,
-				RooAbsReal& _beta,
-				RooAbsReal& _gamma,
-				RooAbsReal& _peak);
-
-		RooCMSShape(const RooCMSShape& other, const char* name);
+				RooAbsReal & _x,
+				RooAbsReal & _alpha,
+				RooAbsReal & _beta,
+				RooAbsReal & _gamma,
+				RooAbsReal & _peak
+				);
+		RooCMSShape(const RooCMSShape & other, const char * name);
 		inline virtual TObject* clone(const char* newname) const { return new RooCMSShape(*this,newname); }
 		inline virtual ~RooCMSShape() {}
-		Double_t evaluate() const ;
-		ClassDef(RooCMSShape,3);
+		Double_t evaluate() const;
 	protected:
-		RooRealProxy x ;
-		RooRealProxy alpha ;
-		RooRealProxy beta ;
-		RooRealProxy gamma ;
-		RooRealProxy peak ;
+		RooRealProxy x;
+		RooRealProxy alpha;
+		RooRealProxy beta;
+		RooRealProxy gamma;
+		RooRealProxy peak;
+	private:
+		ClassDef(RooCMSShape,3);
 };
 
 #endif
