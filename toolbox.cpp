@@ -41,23 +41,32 @@ std::string double2string(double num) {
 	return temp.str();
 }
 
+double string2double(const std::string & num) {
+	std::stringstream temp;
+	temp << num;
+	double n;
+	temp >> n;
+	return n;
+}
+
 double calculateParA(double a1, double b1, double c1, double b2, double c2, double x) {
 	double logx = log(x);
-	return a1*b1*sin(b1*logx + c1) / ( b2 * sin(b2*logx + c2) );
+	return a1*b1*sin(b1*(logx + c1)) / ( b2 * sin(b2*(logx + c2)) );
 }
 
 double calculateParD(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double x) {
 	double logx = log(x);
-	return a1*cos(b1*logx + c1) + d1 - a2*cos(b2*logx + c2);
+	return a1*cos(b1*(logx + c1)) + d1 - a2*cos(b2*(logx + c2));
 }
 
 double myFunc(double a, double b, double c, double d, double x) {
-	return exp(a * cos( b * log(x) + c) + d);
+	return exp(a * cos( b * (log(x) + c) ) + d);
 }
 
-double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
+double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
 		double b3, double c3, double b4, double c4, double zpt) {
 
+	double a1 = a1p / b1;
 	double x1 = 50;
 	double x2 = 70;
 	double x3 = 94;
@@ -96,7 +105,7 @@ unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool 
 	bool vbf = (nhardjet == 2) && (delEta > 4.0) && (mjj > 500.0); 
 	bool cat1 = (nhardjet == 0);
 	if (isPhotonSample)
-		cat1 = cat1 && (nsoftjet == 0);
+		cat1 = cat1 && (nsoftjet > 0);
 	bool cat2 = (nhardjet >= 1) && !vbf;
 	if ( cat1 )
 		return 1;
@@ -105,10 +114,10 @@ unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool 
 	else if ( vbf )
 		return 3;
 	else {
-		//cout << nhardjet << endl;
-		//cout << nsoftjet << endl;
-		//cout << delEta << endl;
-		//cout << mjj << endl;
+		std::cout << nhardjet << std::endl;
+		std::cout << nsoftjet << std::endl;
+		std::cout << delEta << std::endl;
+		std::cout << mjj << std::endl;
 		throw string("ERROR: Unrecognized category!");
 	}
 }

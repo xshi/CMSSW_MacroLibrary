@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 #include <fstream>
+#include "toolbox.h"
 
 using std::ifstream;
 using std::pair;
@@ -39,6 +40,14 @@ bool Options::checkBoolOption(const std::string & name) const {
 		throw string("ERROR: Can't find requested option: " + name + "!");
 }
 
+double Options::checkDoubleOption(const std::string & name) const {
+	auto pos = stringOptions.find(name);
+	if (pos != stringOptions.end())
+		return string2double(pos->second);
+	else
+		throw string("ERROR: Can't find requested option: " + name + "!");
+}
+
 const string & Options::checkStringOption(const std::string & name) const {
 	auto pos = stringOptions.find(name);
 	if (pos != stringOptions.end())
@@ -51,6 +60,17 @@ void Options::addBoolOption(const string & name, bool value) {
 	boolOptions[name] = value;
 }
 
+void Options::addDoubleOption(const string & name, double value) {
+	stringOptions[name] = double2string(value);
+}
+
 void Options::addStringOption( const std::string & name, const std::string & value ) {
 	stringOptions[name] = value;
+}
+
+void Options::print() const {
+	for (auto iter = boolOptions.begin(); iter != boolOptions.end(); ++iter)
+		cout << iter->first << "=" << iter->second << endl;
+	for (auto iter = stringOptions.begin(); iter != stringOptions.end(); ++iter)
+		cout << iter->first << "=" << iter->second << endl;
 }

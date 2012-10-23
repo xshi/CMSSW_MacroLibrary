@@ -9,14 +9,15 @@ class Samples;
 
 class DCut {
 	public :
-		enum TYPE { GT, LT, EQ, NO };
+		enum TYPE { GT, LT, EQ, WIN, NO };
 	private:
 		std::string varName_;
 		DCut::TYPE cT_;
 		double cutValue_;
+		double cutValue1_;
 	public:
-		DCut( std::string variable = "", DCut::TYPE cType = NO, double val = 0 )
-			: varName_(variable), cT_(cType), cutValue_(val) {};
+		DCut( std::string variable = "", DCut::TYPE cType = NO, double val = 0, double val1 = 0 )
+			: varName_(variable), cT_(cType), cutValue_(val), cutValue1_(val1) {};
 		virtual ~DCut() {};
 		virtual std::string GetName() const;
 		virtual std::string GetVarName() const {
@@ -28,31 +29,15 @@ class DCut {
 		virtual double GetCutValue() const {
 			return cutValue_;
 		};
-		virtual void SetCutValue (double val) {
+		virtual double GetCutValue1() const {
+			return cutValue1_;
+		};
+		virtual void SetCutValue(double val) {
 			cutValue_ = val;
 		}
-};
-
-class OptConf {
-	public:
-		OptConf (unsigned n_points, double increment) : npoints_ (n_points), inc_ (increment) {};
-		virtual ~OptConf() {};
-		unsigned GetNpoints() {
-			return npoints_;
+		virtual void SetCutValue1(double val) {
+			cutValue1_ = val;
 		}
-		double GetIncrement() {
-			return inc_;
-		}
-		virtual void SetBest(double val) {
-			best_ = val;
-		}
-		virtual double GetBest() {
-			return best_;
-		}
-	private:
-		unsigned npoints_;
-		double inc_;
-		double best_;
 };
 
 class Cut {

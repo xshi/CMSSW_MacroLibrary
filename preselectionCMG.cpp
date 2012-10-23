@@ -39,7 +39,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	else if (type == EMU)
 		cout << "Running Electron-Muon Preselection() ..." << endl;
 	else if (type == PHOT)
-		cout << "Runnign Photon Preselection :" << endl;
+		cout << "Running Photon Preselection :" << endl;
 
 	string inputDir = opt.checkStringOption("INPUT_DIR");
 	string outputDir = opt.checkStringOption("OUTPUT_DIR");
@@ -167,11 +167,11 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		RooAbsPdf * pdf = w->pdf("massPDF");
 		events = pdf->generate(*zmass, nentries);
 
-		photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("photonPrescaleDir") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 	}
 
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {

@@ -11,6 +11,7 @@ double max( double a, double b );
 double deltaPhi( double phi1, double phi2 );
 double deltaR( double eta1, double phi1, double eta2, double phi2);
 std::string double2string(double num);
+double string2double(const std::string & num);
 template <typename T>
 T min( const std::vector<T> values) {
 	T min = 999999999;
