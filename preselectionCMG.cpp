@@ -70,6 +70,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
 	const int * cat = ev.getSVA<int>("cat"); 
+	const int * phPrescale;
 
 	EventPrinter evPrint(ev, "events.txt");
 	//evPrint.readInEvents("output1.txt");
@@ -172,6 +173,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+
+		phPrescale = ev.getSVA<int>("gn_prescale");
 	}
 
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
@@ -230,19 +233,24 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			} else {
 				int trgThreshold = ((*cat) - 22) / 1000;
 				weight = photonPrescales.getPrescale( run, lumi, trgThreshold );
-				//cout << setw(8) << run << setw(8) << lumi << setw(8) << trgThreshold << setw(8) << phPrescale << endl;
-				//cin.get();
+				if ( *phPrescale != weight ) {
+					cout << "PROBLEM:" << endl;
+					cout << "Weight = " << weight << endl;
+					cout << "phPrescale = " << *phPrescale << endl;
+					//cout << setw(8) << run << setw(8) << lumi << setw(8) << trgThreshold << setw(8) << phPrescale << endl;
+					//cin.get();
+				}
 			}
 		}
 
 		if (! *trigP) {
 			continue;
 		}
-//		cout << run << ":" << lumi << ":" << event << endl;
-//		if (isData) {
-//			if (!triggerAccept(ev, type))
-//				continue;
-//		}
+		//		cout << run << ":" << lumi << ":" << event << endl;
+		//		if (isData) {
+		//			if (!triggerAccept(ev, type))
+		//				continue;
+		//		}
 
 		vector<Electron> electrons = buildElectronCollection(ev, leptonVars, electronVars);
 		vector<Muon> muons = buildMuonCollection(ev, leptonVars, muonVars);
@@ -413,16 +421,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		if ( type == PHOT && nsoftjet == 0 )
 			continue;
 
-		minDeltaPhiJetMet = 10;
-		for ( unsigned j = 0; j < hardjets.size(); ++j ) {
-			TLorentzVector jet = hardjets[j].lorentzVector();
-			if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
-				maxJetBTag = hardjets[j].btag;
-			double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
-			if ( tempDelPhiJetMet < minDeltaPhiJetMet )
-				minDeltaPhiJetMet = tempDelPhiJetMet;
-		}
-
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
 					return a.lorentzVector().Eta() < b.lorentzVector().Eta();
@@ -437,6 +435,27 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 					detajj = tmpDelEta;
 					mjj = tmpMass;
 				}
+			}
+		}
+
+		category = evCategory(nhardjet, nsoftjet, detajj, mjj, type == PHOT);
+
+		minDeltaPhiJetMet = 10;
+		if (category == 1) {
+			for ( unsigned j = 0; j < softjets.size(); ++j ) {
+				TLorentzVector jet = softjets[j].lorentzVector();
+				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+					minDeltaPhiJetMet = tempDelPhiJetMet;
+			}
+		} else {
+			for ( unsigned j = 0; j < hardjets.size(); ++j ) {
+				TLorentzVector jet = hardjets[j].lorentzVector();
+				if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
+					maxJetBTag = hardjets[j].btag;
+				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+					minDeltaPhiJetMet = tempDelPhiJetMet;
 			}
 		}
 		/*
@@ -460,8 +479,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		nvtx = *nvtxP;
 
 		ni = *niP;
-
-		category = evCategory(nhardjet, nsoftjet, detajj, mjj, type == PHOT);
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
