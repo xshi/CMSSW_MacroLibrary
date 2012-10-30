@@ -2,6 +2,7 @@
 #include "electron.h"
 #include "event.h"
 #include "eventPrinter.h"
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include "jet.h"
@@ -30,6 +31,7 @@ using std::string;
 using std::vector;
 using std::stringstream;
 using std::setw;
+using std::ofstream;
 
 void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w ) {
 	if (type == ELE)
@@ -70,7 +72,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
 	const int * cat = ev.getSVA<int>("cat"); 
-	const int * phPrescale;
+	const int * phPrescale = 0;
 
 	EventPrinter evPrint(ev, "events.txt");
 	//evPrint.readInEvents("output1.txt");
@@ -164,18 +166,32 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		if (w == nullptr)
 			throw string("ERROR: No mass peak pdf!");
 		RooRealVar * zmass = w->var("mass");
-		zmass->setRange(76.0, 106.0);
+		zmass->setRange(76.2, 106.2);
 		RooAbsPdf * pdf = w->pdf("massPDF");
 		events = pdf->generate(*zmass, nentries);
 
-		photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger("HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22);
+		photonPrescales.addTrigger("HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36);
+		photonPrescales.addTrigger("HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50);
+		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75);
+		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90);
+		photonPrescales.addTrigger("HLT_Photon135", 135);
+		photonPrescales.addTrigger("HLT_Photon150", 150);
+		photonPrescales.addTrigger("HLT_Photon160", 160);
+		//photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		//photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		//photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		//photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		//photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 
 		phPrescale = ev.getSVA<int>("gn_prescale");
 	}
+
+	const double TRIGGERTHR = 160;
+	TH1D histoPT("histoPT", "histoPT", 100, 150, 200);
+	TH1D eff("eff", "eff", 100, 150, 200);
+	TH1D prescale("prescale", "prescale", 100, 0, 500);
+	TH1D outRun("runs", "runs", 100, 194000, 204000);
 
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 
@@ -226,21 +242,6 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		}
 		if (type == EMU && (*cat) != 3) {
 			continue;
-		}
-		if (type == PHOT) {
-			if ( (*cat) < 10) {
-				continue;
-			} else {
-				int trgThreshold = ((*cat) - 22) / 1000;
-				weight = photonPrescales.getPrescale( run, lumi, trgThreshold );
-				if ( *phPrescale != weight ) {
-					cout << "PROBLEM:" << endl;
-					cout << "Weight = " << weight << endl;
-					cout << "phPrescale = " << *phPrescale << endl;
-					//cout << setw(8) << run << setw(8) << lumi << setw(8) << trgThreshold << setw(8) << phPrescale << endl;
-					//cin.get();
-				}
-			}
 		}
 
 		if (! *trigP) {
@@ -373,6 +374,24 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		zpt = Zcand.Pt();
 		zeta = Zcand.Eta();
 
+		if (type == PHOT) {
+			if ( (*cat) < 10) {
+				continue;
+			} else {
+				int trgThreshold = ((*cat) - 22) / 1000;
+				weight = *phPrescale;
+				double nextT = photonPrescales.nextThreshold(trgThreshold);
+				eff.Fill(zpt, weight);
+				if (trgThreshold == TRIGGERTHR) {
+					histoPT.Fill(zpt, weight);
+					prescale.Fill(weight);
+					outRun.Fill(run);
+				}
+				if (nextT > 0 && zpt < nextT)
+					continue;
+			}
+		}
+
 		vector<Jet> jets = selectJetsCMG( ev, jetVars );
 		if (type == PHOT) {
 			vector<Jet> tmpJets;
@@ -503,6 +522,19 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		evPrint.print();
 	}
 	cout << endl;
+	
+	TCanvas canv("canv", "canv", 800, 600);
+	histoPT.Sumw2();
+	eff.Sumw2();
+	histoPT.Divide(&eff);
+	histoPT.Draw();
+	canv.SaveAs("threshold.ps");
+	canv.Clear();
+	prescale.Draw();
+	canv.SaveAs("prescale.ps");
+	canv.Clear();
+	outRun.Draw();
+	canv.SaveAs("runs.ps");
 
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);

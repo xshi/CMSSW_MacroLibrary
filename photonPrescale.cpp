@@ -8,6 +8,7 @@ using std::map;
 using std::ifstream;
 using std::stringstream;
 using std::string;
+using std::ostream;
 
 bool PhotonPrescale::RunLumi::operator<(const RunLumi & rl) const {
 	if (rl.run == run)
@@ -15,13 +16,12 @@ bool PhotonPrescale::RunLumi::operator<(const RunLumi & rl) const {
 	return run < rl.run;
 }
 
-unsigned PhotonPrescale::PhotonTrigger::getPrescale(const RunLumi & rl) {
+unsigned PhotonPrescale::PhotonTrigger::getPrescale(const RunLumi & rl, ostream & os) {
 	auto pos = prescales.find(rl);
 	if (pos != prescales.end()) {
 		return pos->second;
 	} else {
-		std::cout << getTriggerName() << " : " << getThreshold() << " : " << rl.getRun() << " " << rl.getLumi() << std::endl;
-		std::cin.get();
+		os << getTriggerName() << " : " << getThreshold() << " : " << rl.getRun() << " " << rl.getLumi() << std::endl;
 		return 0;
 		throw string("ERROR: Can't find prescale!");
 	}
@@ -57,11 +57,26 @@ void PhotonPrescale::addTrigger(const std::string & tN, double th, const std::st
 			});
 }
 
-unsigned PhotonPrescale::getPrescale(unsigned run, unsigned lumi, double pt) {
+void PhotonPrescale::addTrigger(const std::string & tN, double th) {
+	triggers.push_back( PhotonTrigger(tN, th) );
+	sort( triggers.begin(), triggers.end(), [](const PhotonTrigger & trg1, const PhotonTrigger & trg2) {
+			return trg1.getThreshold() < trg2.getThreshold();
+			});
+}
+
+unsigned PhotonPrescale::getPrescale(unsigned run, unsigned lumi, double pt, ostream & os) {
 	for (unsigned i = 0; i < triggers.size(); ++i) {
 		if ( (pt >= triggers[i].getThreshold()) && ((i == triggers.size() - 1) || pt < triggers[i + 1].getThreshold()) )
-			return triggers[i].getPrescale( RunLumi(run, lumi) );
+			return triggers[i].getPrescale( RunLumi(run, lumi), os );
 	}
 	std::cout << "WARNING: Can't find proper prescale for p_T = " << pt << "!" << std::endl; 
 	return 0;
+}
+
+double PhotonPrescale::nextThreshold(double pt) const {
+	for (unsigned i = 0; i < triggers.size(); ++i) {
+		if (triggers[i].getThreshold() > pt)
+			return triggers[i].getThreshold();
+	}
+	return 10e6;
 }

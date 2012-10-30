@@ -25,7 +25,8 @@ Photon::Photon( float px_, float py_, float pz_, float en_, float iso1_, float i
 	htoe(htoe_),
 	corren(corren_),
 	correnerr(correnerr_),
-	idbits(idbits_) {}
+	idbits(idbits_) {
+}
 
 TLorentzVector Photon::lorentzVector() const {
 	return TLorentzVector(px, py, pz, en);
@@ -51,7 +52,7 @@ bool Photon::isInCrack() const {
 bool Photon::isSelected(double rho) {
 	TLorentzVector vec = lorentzVector();
 	bool noPixSeed = (idbits & (0x1 << 0));
-	if ( vec.Pt() > 25 && fabs(vec.Eta()) < 2.5 && !isInCrack() && noPixSeed && hoe < 0.05 ) {
+	if ( vec.Pt() > 30 && fabs(vec.Eta()) < 2.5 && !isInCrack() && noPixSeed && hoe < 0.05 ) {
 		if (isEB()) {
 			if ( sihih < 0.011 &&
 					iso1 < (2.0 + 0.001 * vec.Pt() + 0.0167 * rho) &&

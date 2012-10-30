@@ -33,7 +33,7 @@ class PhotonPrescale {
 				double getThreshold() const {
 					return threshold;
 				}
-				unsigned getPrescale(const RunLumi & rl);
+				unsigned getPrescale(const RunLumi & rl, std::ostream & os);
 				void readInPrescales(const std::string & inputFileName);
 			private :
 				std::string name;
@@ -42,7 +42,9 @@ class PhotonPrescale {
 		};
 		PhotonPrescale() {};
 		void addTrigger(const std::string & tN, double th, const std::string & fileName);
-		unsigned getPrescale(unsigned run, unsigned lumi, double pt);
+		void addTrigger(const std::string & tN, double th);
+		unsigned getPrescale(unsigned run, unsigned lumi, double pt, std::ostream & os);
+		double nextThreshold(double pt) const;
 	private :
 		std::vector<PhotonTrigger> triggers;
 };
