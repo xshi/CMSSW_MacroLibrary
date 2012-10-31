@@ -8,8 +8,14 @@ class Options {
 	private:
 		std::map<std::string, bool> boolOptions;
 		std::map<std::string, std::string> stringOptions;
+		Options() {};
+		Options(const Options &);
+		void operator=(const Options &);
 	public:
-		Options();
+		static Options & getInstance() {
+            static Options instance;
+            return instance;
+        }
 		void readInOptions(const std::string & fileName);
 		bool checkBoolOption(const std::string & name) const;
 		double checkDoubleOption(const std::string & name) const;

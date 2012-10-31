@@ -11,14 +11,12 @@ using std::string;
 using std::cout;
 using std::endl;
 
-Options::Options() {}
-
 void Options::readInOptions(const std::string & fileName) {
 	ifstream in(fileName.c_str());
-	while (in.good()) {
+	while (!in.eof()) {
 		string tempLine;
 		getline(in, tempLine);
-		if (!tempLine.size() || tempLine[0] == '#')
+		if (!tempLine.size() || tempLine[0] == '\n' || tempLine[0] == '#')
 			continue;
 		size_t pos = tempLine.find('=');
 		if (pos != string::npos) {
@@ -37,7 +35,7 @@ bool Options::checkBoolOption(const std::string & name) const {
 	if ( pos != boolOptions.end())
 		return pos->second;
 	else
-		throw string("ERROR: Can't find requested option: " + name + "!");
+		throw string("ERROR: Can't find requested bool option: " + name + "!");
 }
 
 double Options::checkDoubleOption(const std::string & name) const {
@@ -45,7 +43,7 @@ double Options::checkDoubleOption(const std::string & name) const {
 	if (pos != stringOptions.end())
 		return string2double(pos->second);
 	else
-		throw string("ERROR: Can't find requested option: " + name + "!");
+		throw string("ERROR: Can't find requested double option: " + name + "!");
 }
 
 const string & Options::checkStringOption(const std::string & name) const {
@@ -53,7 +51,7 @@ const string & Options::checkStringOption(const std::string & name) const {
 	if (pos != stringOptions.end())
 		return pos->second;
 	else
-		throw string("ERROR: Can't find requested option: " + name + "!");
+		throw string("ERROR: Can't find requested string option: " + name + "!");
 }
 
 void Options::addBoolOption(const string & name, bool value) {

@@ -5,6 +5,7 @@
 #include <string>
 
 using std::string;
+using std::vector;
 
 double min( double a, double b ) {
 	if (a < b)
@@ -98,10 +99,6 @@ double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
 }
 
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample) {
-//	int nhardjet = ev.getSVV<int>("NHARDJET");
-//	int nsoftjet = ev.getSVV<int>("NSOFTJET");
-//	double delEta = ev.getSVV<double>("DETAJJ");
-//	double mjj = ev.getSVV<double>("MJJ");
 	bool vbf = (nhardjet == 2) && (delEta > 4.0) && (mjj > 500.0); 
 	bool cat1 = (nhardjet == 0);
 	if (isPhotonSample)
@@ -120,4 +117,16 @@ unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool 
 		std::cout << mjj << std::endl;
 		throw string("ERROR: Unrecognized category!");
 	}
+}
+
+std::vector<string> tokenize(std::string text, char token) {
+	vector<string> fields;
+	auto pos = text.find_first_of(token);
+	while (pos != string::npos) {
+		fields.push_back( text.substr(0, pos) );
+		text.erase(0, pos + 1);
+		pos = text.find_first_of(token);
+	}
+	fields.push_back( text );
+	return fields;
 }
