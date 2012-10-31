@@ -53,7 +53,8 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	if (!file->IsOpen())
 		throw string("ERROR: Can't open the file: " + inputFile + "!");
 	TDirectory * dir = (TDirectory *) file->Get("evAnalyzer");
-	TH1D * histo = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("cutflow");
+	TH1D * nEvHisto = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("cutflow");
+	TH1D * puHisto = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("pileup");
 	TTree * tree = ( TTree * ) dir->Get( "data" );
 	Event ev( tree );
 	LeptonVariables leptonVars( ev );
@@ -74,7 +75,7 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	const int * cat = ev.getSVA<int>("cat"); 
 	const int * phPrescale = 0;
 
-	EventPrinter evPrint(ev, "events.txt");
+	//EventPrinter evPrint(ev, "events.txt");
 	//evPrint.readInEvents("output1.txt");
 	//evPrint.printElectrons();
 	//evPrint.printMuons();
@@ -93,9 +94,12 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 	cout << "\tOutput file: " << outputFile << endl;
 
 	TFile * out = new TFile( outputFile.c_str(), "recreate" );
-	TH1D * outHisto = new TH1D("nevt", "nevt", 1, 0, 1);
-	outHisto->SetBinContent(1, histo->GetBinContent(1));
-	outHisto->Write("nevt");
+	TH1D * outNEvHisto = new TH1D("nevt", "nevt", 1, 0, 1);
+	outNEvHisto->SetBinContent(1, nEvHisto->GetBinContent(1));
+	outNEvHisto->Write("nevt");
+
+	TH1D * outPuHisto = new TH1D( *puHisto );
+	outPuHisto->Write("pileup");
 
 	unsigned run;
 	unsigned lumi;
@@ -187,11 +191,11 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		phPrescale = ev.getSVA<int>("gn_prescale");
 	}
 
-	const double TRIGGERTHR = 160;
-	TH1D histoPT("histoPT", "histoPT", 100, 150, 200);
-	TH1D eff("eff", "eff", 100, 150, 200);
-	TH1D prescale("prescale", "prescale", 100, 0, 500);
-	TH1D outRun("runs", "runs", 100, 194000, 204000);
+	//const double TRIGGERTHR = 160;
+	//TH1D histoPT("histoPT", "histoPT", 100, 150, 200);
+	//TH1D eff("eff", "eff", 100, 150, 200);
+	//TH1D prescale("prescale", "prescale", 100, 0, 500);
+	//TH1D outRun("runs", "runs", 100, 194000, 204000);
 
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 
@@ -381,13 +385,14 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 				int trgThreshold = ((*cat) - 22) / 1000;
 				weight = *phPrescale;
 				double nextT = photonPrescales.nextThreshold(trgThreshold);
-				eff.Fill(zpt, weight);
-				if (trgThreshold == TRIGGERTHR) {
-					histoPT.Fill(zpt, weight);
-					prescale.Fill(weight);
-					outRun.Fill(run);
-				}
-				if (nextT > 0 && zpt < nextT)
+				//eff.Fill(zpt, weight);
+				//if (trgThreshold == TRIGGERTHR) {
+				//	histoPT.Fill(zpt, weight);
+				//	prescale.Fill(weight);
+				//	outRun.Fill(run);
+				//}
+				double offset = 3;
+				if (zpt < trgThreshold + offset || zpt > nextT + offset)
 					continue;
 			}
 		}
@@ -407,13 +412,13 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 			jets = tmpJets;
 		}
 
-		TLorentzVector jetDiff = smearJets( jets );
-		if (isData && jetDiff != TLorentzVector())
-			throw std::string("Jet Corrections different from zero in DATA!");
+		//TLorentzVector jetDiff = smearJets( jets );
+		//if (isData && jetDiff != TLorentzVector())
+		//	throw std::string("Jet Corrections different from zero in DATA!");
 
 		TLorentzVector met;
-		met.SetPtEtaPhiM(metPtA[2], 0.0, metPhiA[2], 0.0);
-		met -= jetDiff;
+		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
+		//met -= jetDiff;
 		pfmet = met.Pt();
 
 		double px = met.Px() + Zcand.Px();
@@ -517,24 +522,24 @@ void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace *
 		
 		smallTree->Fill();
 
-		evPrint.setElectronCollection(electrons);
-		evPrint.setMuonCollection(muons);
-		evPrint.print();
+		//evPrint.setElectronCollection(electrons);
+		//evPrint.setMuonCollection(muons);
+		//evPrint.print();
 	}
 	cout << endl;
 	
-	TCanvas canv("canv", "canv", 800, 600);
-	histoPT.Sumw2();
-	eff.Sumw2();
-	histoPT.Divide(&eff);
-	histoPT.Draw();
-	canv.SaveAs("threshold.ps");
-	canv.Clear();
-	prescale.Draw();
-	canv.SaveAs("prescale.ps");
-	canv.Clear();
-	outRun.Draw();
-	canv.SaveAs("runs.ps");
+	//TCanvas canv("canv", "canv", 800, 600);
+	//histoPT.Sumw2();
+	//eff.Sumw2();
+	//histoPT.Divide(&eff);
+	//histoPT.Draw();
+	//canv.SaveAs("threshold.ps");
+	//canv.Clear();
+	//prescale.Draw();
+	//canv.SaveAs("prescale.ps");
+	//canv.Clear();
+	//outRun.Draw();
+	//canv.SaveAs("runs.ps");
 
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);
