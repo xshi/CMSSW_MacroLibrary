@@ -33,7 +33,8 @@ using std::stringstream;
 using std::setw;
 using std::ofstream;
 
-void LeptonPreselectionCMG( const Options & opt, PreselType type, RooWorkspace * w ) {
+void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
+	const Options & opt = Options::getInstance(); 
 	if (type == ELE)
 		cout << "Running Electron Preselection :" << endl;
 	else if (type == MU)

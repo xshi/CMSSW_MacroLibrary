@@ -13,6 +13,8 @@ using std::endl;
 
 void Options::readInOptions(const std::string & fileName) {
 	ifstream in(fileName.c_str());
+	if (!in.is_open())
+		throw string("ERROR: Can't open configuration file: " + fileName + "!");
 	while (!in.eof()) {
 		string tempLine;
 		getline(in, tempLine);
