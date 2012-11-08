@@ -69,13 +69,14 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const bool * trigP = ev.getSVA<bool>("hasTrigger");
 	const float * metPtA = ev.getAVA<float>("met_pt");
 	const float * metPhiA = ev.getAVA<float>("met_phi");
-	//const float * rhoP = ev.getSVA<float>("rho25");
-	const float * rhoP = ev.getSVA<float>("rho");
+	const float * rhoP = ev.getSVA<float>("rho25");
+	//const float * rhoP = ev.getSVA<float>("rho");
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
 	const int * cat = ev.getSVA<int>("cat"); 
 	const int * phPrescale = 0;
-
+	const int * phTrigBits = 0;
+	
 	//EventPrinter evPrint(ev, "events.txt");
 	//evPrint.readInEvents("output1.txt");
 	//evPrint.printElectrons();
@@ -167,6 +168,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 	PhotonPrescale photonPrescales;
 
+	vector<int> thresholds;
 	if (type == PHOT) {
 		if (w == nullptr)
 			throw string("ERROR: No mass peak pdf!");
@@ -181,22 +183,30 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75);
 		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90);
 		photonPrescales.addTrigger("HLT_Photon135", 135);
-		photonPrescales.addTrigger("HLT_Photon150", 150);
-		photonPrescales.addTrigger("HLT_Photon160", 160);
+		//photonPrescales.addTrigger("HLT_Photon150", 150);
+		//photonPrescales.addTrigger("HLT_Photon160", 160);
+		thresholds.push_back(22);
+		thresholds.push_back(36);
+		thresholds.push_back(50);
+		thresholds.push_back(75);
+		thresholds.push_back(90);
+		thresholds.push_back(135);
+		//thresholds.push_back(150);
+		//thresholds.push_back(160);
 		//photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		//photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		//photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		//photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_D:vert IRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		//photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		//photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 
-		phPrescale = ev.getSVA<int>("gn_prescale");
+		phPrescale = ev.getAVA<int>("gn_prescale");
+		phTrigBits = ev.getSVA<int>("gn_triggerWord"); 
 	}
 
-	//const double TRIGGERTHR = 160;
-	//TH1D histoPT("histoPT", "histoPT", 100, 150, 200);
-	//TH1D eff("eff", "eff", 100, 150, 200);
-	//TH1D prescale("prescale", "prescale", 100, 0, 500);
-	//TH1D outRun("runs", "runs", 100, 194000, 204000);
+	//TH1D effNum("effNum", "effNum", 40, 135, 155);
+	//TH1D effDen("effDen", "effDen", 40, 135, 155);
+	//TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 100, 130, 230);
+	//ptSpectrum.Sumw2();
 
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 
@@ -290,7 +300,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 				looseMuons.push_back(muons[j]);
 			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
 				softMuons.push_back(muons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && muons[j].isPFIsolatedTight() ) {
+			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon() && muons[j].isPFIsolatedLoose() ) {
 				selectedMuons.push_back(muons[j]);
 			}
 		}
@@ -340,7 +350,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 				selectedLeptons[1] = &selectedMuons[0];
 			}
 		} else if (type == PHOT) {
-			if (selectedPhotons.size() < 1) {
+			if (selectedPhotons.size() != 1) {
 				continue;
 			}
 		}
@@ -355,7 +365,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			TLorentzVector lep1 = selectedLeptons[0]->lorentzVector();
 			TLorentzVector lep2 = selectedLeptons[1]->lorentzVector();
 
-			if (lep2.Pt() > lep1.Pt()) {
+			if (lep2.Pt() > lep1.Pt() && type != EMU) {
 				TLorentzVector temp = lep1;
 				lep1 = lep2;
 				lep2 = temp;
@@ -383,18 +393,32 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			if ( (*cat) < 10) {
 				continue;
 			} else {
-				int trgThreshold = ((*cat) - 22) / 1000;
-				weight = *phPrescale;
-				double nextT = photonPrescales.nextThreshold(trgThreshold);
-				//eff.Fill(zpt, weight);
-				//if (trgThreshold == TRIGGERTHR) {
-				//	histoPT.Fill(zpt, weight);
-				//	prescale.Fill(weight);
-				//	outRun.Fill(run);
+				//cout << zpt << endl;
+				//for (unsigned i = 0; i < thresholds.size(); ++i)
+				//	cout << setw(5) << thresholds[i];
+				//cout << endl;
+				//for (int i = 0; i < 16; ++i)
+				//	cout << setw(5) << phPrescale[i];
+				//cout << endl;
+				//for (int i = 0; i < 16; ++i)
+				//	cout << setw(5) << ((*phTrigBits >> i) & 0x1);
+				//cout << endl;
+				//effDen.Fill(zpt);
+				//if ((*phTrigBits >> 5) & 0x1) {
+				//	effNum.Fill(zpt);
+				//	ptSpectrum.Fill(zpt, phPrescale[5]);
 				//}
-				double offset = 3;
-				if (zpt < trgThreshold + offset || zpt > nextT + offset)
-					continue;
+
+				if (phPrescale[5] != 1)
+					throw string("Photon135 Prescaled!");
+				unsigned idx = photonPrescales.getIndex(zpt);
+				if ((*phTrigBits >> idx) & 0x1)
+					weight = phPrescale[idx];
+				else
+					weight = 0;
+
+				//cout << weight << endl;
+				//cin.get();
 			}
 		}
 
@@ -413,13 +437,13 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			jets = tmpJets;
 		}
 
-		//TLorentzVector jetDiff = smearJets( jets );
-		//if (isData && jetDiff != TLorentzVector())
-		//	throw std::string("Jet Corrections different from zero in DATA!");
+		TLorentzVector jetDiff = smearJets( jets );
+		if (isData && jetDiff != TLorentzVector())
+			throw std::string("Jet Corrections different from zero in DATA!");
 
 		TLorentzVector met;
 		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
-		//met -= jetDiff;
+		met -= jetDiff;
 		pfmet = met.Pt();
 
 		double px = met.Px() + Zcand.Px();
@@ -530,17 +554,18 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	cout << endl;
 	
 	//TCanvas canv("canv", "canv", 800, 600);
-	//histoPT.Sumw2();
-	//eff.Sumw2();
-	//histoPT.Divide(&eff);
-	//histoPT.Draw();
-	//canv.SaveAs("threshold.ps");
+	//effNum.Sumw2();
+	//effDen.Sumw2();
+	//effNum.Divide(&effDen);
+	//effNum.Draw();
+	//canv.SetGridy();
+	//canv.SetGridx();
+	//canv.SaveAs("triggEff.ps");
 	//canv.Clear();
-	//prescale.Draw();
-	//canv.SaveAs("prescale.ps");
-	//canv.Clear();
-	//outRun.Draw();
-	//canv.SaveAs("runs.ps");
+	//ptSpectrum.SetMarkerStyle(20);
+	//ptSpectrum.Draw("P0E");
+	//canv.SetLogy();
+	//canv.SaveAs("ptSpectrum.ps");
 
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);

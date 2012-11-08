@@ -76,8 +76,8 @@ double Electron::effAreaMC() const {
 }
 
 double Electron::effAreaDATA() const {
-	double abseta = fabs(lorentzVector().Eta());
-	//double abseta = fabs(eta);
+	//double abseta = fabs(lorentzVector().Eta());
+	double abseta = fabs(sceta);
 	if (abseta < 1.0)
 		return 0.19;
 	else if (abseta < 1.479)

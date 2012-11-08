@@ -80,3 +80,19 @@ double PhotonPrescale::nextThreshold(double pt) const {
 	}
 	return 10e6;
 }
+
+unsigned PhotonPrescale::getIndex(double pt) {
+	if (triggers.size() != offsets.size())
+		throw string("ERROR: Different size of triggers and offsets vectors!");
+	for (unsigned i = 0; i < triggers.size(); ++i) {
+		if ( pt > triggers[i].getThreshold() + offsets[i] ) {
+			if (i < triggers.size() - 1) {
+				if (pt < triggers[i + 1].getThreshold() + offsets[i + 1])
+					return i;
+			} else
+				return i;
+
+		}
+	}
+	throw string("ERROR: Can't find proper index!");
+}

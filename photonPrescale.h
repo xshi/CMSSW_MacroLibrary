@@ -40,13 +40,23 @@ class PhotonPrescale {
 				double threshold;
 				std::map<RunLumi, unsigned> prescales;
 		};
-		PhotonPrescale() {};
+		PhotonPrescale() {
+			offsets.clear();
+			offsets.push_back(5);
+			offsets.push_back(3);
+			offsets.push_back(5);
+			offsets.push_back(7);
+			offsets.push_back(10);
+			offsets.push_back(10);
+		};
 		void addTrigger(const std::string & tN, double th, const std::string & fileName);
 		void addTrigger(const std::string & tN, double th);
 		unsigned getPrescale(unsigned run, unsigned lumi, double pt, std::ostream & os);
 		double nextThreshold(double pt) const;
+		unsigned getIndex(double pt);
 	private :
 		std::vector<PhotonTrigger> triggers;
+		std::vector<double> offsets;
 };
 
 #endif // PHOTONPRESCALE
