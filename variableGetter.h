@@ -6,22 +6,18 @@ class VariableContainer;
 
 class VariableGetter {
 	public:
-		enum VGTYPE { UNS, INT, DBL, VEI, VEF, SUMI };
+		enum VGTYPE { UNS, INT, DBL, VEI, VEF };
 		VariableGetter(const std::string & name, const Event & ev);
 		~VariableGetter() {};
 		double getValue() const;
 		double getValue(unsigned i) const;
-		std::string getName() const {
-			return name;
-		}
-		VGTYPE getType() const {
-			return type;
-		}
+		const std::string & getName() const {return name;}
+		VGTYPE getType() const {return type;}
 		int size() const;
+		bool operator<(const VariableGetter & vg) const {return name < vg.name;}
 	private:
 		std::string name;
 		VariableContainer * var;
-		VariableContainer * var1;
 		VGTYPE type;
 };
 

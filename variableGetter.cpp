@@ -15,15 +15,6 @@ using std::string;
 using std::stringstream;
 
 VariableGetter::VariableGetter(const string & hName, const Event & ev) {
-	size_t pos = hName.find('+');
-	if (pos != string::npos) {
-		var = ev.findVariable( hName.substr(0, pos) );
-		var1 = ev.findVariable( hName.substr(pos + 1) );
-		if (!var || !var1)
-			throw string("ERROR: VariableGetter::VariableGetter : Can't find one of those variables: " + hName + "!");
-		type = SUMI;
-		return;
-	}
 	var = ev.findVariable(hName);
 	if (!var)
 		throw string("ERROR: VariableGetter::VariableGetter : Can't find this variable: " + hName + "!");
@@ -52,10 +43,6 @@ double VariableGetter::getValue() const {
 	} else if (type == DBL) {
 		const SingleVariableContainer<double> * tmpVar = dynamic_cast<const SingleVariableContainer<double> *>(var);
 		return tmpVar->getVal();
-	} else if (type == SUMI) {
-		const SingleVariableContainer<int> * tmpVar = dynamic_cast<const SingleVariableContainer<int> *>(var);
-		const SingleVariableContainer<int> * tmpVar1 = dynamic_cast<const SingleVariableContainer<int> *>(var1);
-		return tmpVar->getVal() + tmpVar1->getVal();
 	} else
 		throw string("ERROR: VariableGetter::getValue() : This is not simple variable: " + getName() + "!");
 }

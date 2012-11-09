@@ -130,3 +130,38 @@ std::vector<string> tokenize(std::string text, char token) {
 	fields.push_back( text );
 	return fields;
 }
+
+std::string encode(const std::string & text) {
+	string str(text);
+	for (unsigned i = 0; i < str.size(); ++i) {
+		if (str[i] == ' ' || str[i] == '(' || str[i] == ')')
+			str[i] = '_';
+	}
+	auto pos = str.find("_");
+	while (pos != string::npos) {
+		str.erase(pos, 1);
+		pos = str.find("_");
+	}
+	pos = str.find("&&");
+	while (pos != string::npos) {
+		str.replace(pos, 2, "_AND_");
+		pos = str.find("&&");
+	}
+	pos = str.find("||");
+	while (pos != string::npos) {
+		str.replace(pos, 2, "_OR_");
+		pos = str.find("||");
+	}
+	pos = str.find(">");
+	while (pos != string::npos) {
+		str.replace(pos, 1, "_GT_");
+		pos = str.find(">");
+	}
+	pos = str.find("<");
+	while (pos != string::npos) {
+		str.replace(pos, 1, "_LT_");
+		pos = str.find("<");
+	}
+
+	return str;
+}

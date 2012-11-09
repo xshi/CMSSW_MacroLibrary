@@ -9,47 +9,42 @@
 // Other
 #include "cut.h"
 #include "event.h"
+#include "parser.h"
+#include <map>
+#include <utility>
+#include <fstream>
 
+using std::map;
 using std::setw;
 using std::cout;
 using std::endl;
 using std::string;
 using std::stringstream;
+using std::set;
 
-string DCut::GetName() const {
-	stringstream temp;
-	temp << varName_;
-	if ( cT_ == GT ) {
-		temp << "_GT_";
-		temp << GetCutValue();
-	} else if ( cT_ == LT ) {
-		temp << "_LT_";
-		temp << GetCutValue();
-	} else if ( cT_ == EQ ) {
-		temp << "_EQ_";
-		temp << GetCutValue();
-	} else if ( cT_ == WIN ) {
-		temp << "_WIN_";
-		temp << GetCutValue();
-		temp << "_";
-		temp << GetCutValue1();
+Cut::Cut(const Event & ev, const std::string & cutExpr) : name_(cutExpr) {
+	set<string> parameters;
+	cut_ = Parser::parse(cutExpr, parameters);
+	for (auto iter = parameters.begin(); iter != parameters.end(); ++iter) {
+		vars_.insert( VariableGetter(*iter, ev) );
 	}
-	return temp.str();
+}
+
+Cut & Cut::operator=(const Cut & c) {
+	if (this == &c)
+		return *this;
+
+	name_ = c.name_;
+	cut_ = c.cut_;
+	vars_ = c.vars_;
+
+	return *this;
 }
 
 bool Cut::operator()() const {
-	if ( desc_.GetType() == DCut::GT )
-		return ( var_->getValue() > desc_.GetCutValue() );
-	else if ( desc_.GetType() == DCut::LT )
-		return ( var_->getValue() < desc_.GetCutValue() );
-	else if ( desc_.GetType() == DCut::EQ )
-		return ( var_->getValue() == desc_.GetCutValue() );
-	else if ( desc_.GetType() == DCut::WIN )
-		return ( var_->getValue() < desc_.GetCutValue() || var_->getValue() > desc_.GetCutValue1() );
-	else
-		return true;
+	map<string, double> parVals;
+	for (auto it = vars_.begin(); it != vars_.end(); ++it)
+		parVals.insert( make_pair(it->getName(), it->getValue()) );
+	return cut_.eval(parVals);
 }
 
-string Cut::GetName() const {
-	return desc_.GetName();
-}

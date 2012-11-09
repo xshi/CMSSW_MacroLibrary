@@ -3,10 +3,12 @@ OBJS = \
 	   electron.o \
 	   event.o \
 	   eventPrinter.o \
+	   expression.o \
 	   jet.o \
 	   lepton.o \
 	   muon.o \
 	   options.o \
+	   parser.o \
 	   photon.o \
 	   photonPrescale.o \
 	   preselectionCMG.o \
@@ -25,10 +27,12 @@ HEADERS = \
 		  electron.h \
 		  event.h \
 		  eventPrinter.h \
+		  expression.h \
 		  jet.h \
 		  lepton.h \
 		  muon.h \
 		  options.h \
+		  parser.h \
 		  photon.h \
 		  photonPrescale.h \
 		  preselectionCMG.h \
@@ -56,10 +60,16 @@ event.o : event.cpp $(HEADERS)
 eventPrinter.o : eventPrinter.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c eventPrinter.cpp
 
+expression.o : expression.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c expression.cpp
+
 options.o : options.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c options.cpp
 
-preselectionCMG.o : preselectionCMG.cpp $(HEADERS) eventPrinter.h
+parser.o : parser.cpp $(HEADERS)
+	$(CC) $(CFLAGS) -c parser.cpp
+
+preselectionCMG.o : preselectionCMG.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c preselectionCMG.cpp
 
 toolbox.o : toolbox.cpp $(HEADERS) 
