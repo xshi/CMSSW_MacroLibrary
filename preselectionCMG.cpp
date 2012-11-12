@@ -442,7 +442,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			throw std::string("Jet Corrections different from zero in DATA!");
 
 		TLorentzVector met;
-		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
+		met.SetPtEtaPhiM(metPtA[2], 0.0, metPhiA[2], 0.0);
 		met -= jetDiff;
 		pfmet = met.Pt();
 
