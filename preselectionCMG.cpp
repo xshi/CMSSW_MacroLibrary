@@ -527,7 +527,10 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 		nvtx = *nvtxP;
 
-		ni = *niP;
+		if (isData)
+			ni = -1;
+		else
+			ni = *niP;
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
