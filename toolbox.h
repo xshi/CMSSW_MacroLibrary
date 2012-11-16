@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 class Event;
 
@@ -37,6 +38,14 @@ unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool 
 std::vector<std::string> tokenize(std::string text, char token);
 std::string encode(const std::string & str);
 
+class EventAdr;
+namespace std {
+	template <>
+		class hash<EventAdr>{
+			public :
+				size_t operator()(EventAdr ev) const;
+		};
+}
 
 class EventAdr {
 	private :
@@ -57,9 +66,11 @@ class EventAdr {
 					return lumi < ev.lumi;
 			} else
 				return run < ev.run;
-			//return run < ev.run && lumi == ev.lumi && event == ev.event;
 		}
 		friend std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
+		friend size_t std::hash<EventAdr>::operator()(EventAdr) const;
 };
+
 std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
+
 #endif // EVENT_H

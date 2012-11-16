@@ -168,6 +168,10 @@ std::string encode(const std::string & text) {
 	return str;
 }
 
+size_t std::hash<EventAdr>::operator()(EventAdr ev) const {
+	return hash<unsigned>()(ev.run) ^ hash<unsigned>()(ev.lumi) ^ hash<unsigned>()(ev.event);
+}
+
 ostream & operator<<(ostream & os, const EventAdr & ev) {
 	os << setw(15) << ev.run << setw(15) << ev.lumi << setw(15) << ev.event;
 	return os;
