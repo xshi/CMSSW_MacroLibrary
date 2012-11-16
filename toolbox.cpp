@@ -3,7 +3,9 @@
 #include <sstream>
 #include "event.h"
 #include <string>
+#include <iomanip>
 
+using std::setw;
 using std::string;
 using std::vector;
 
@@ -164,4 +166,9 @@ std::string encode(const std::string & text) {
 	}
 
 	return str;
+}
+
+ostream & operator<<(ostream & os, const EventAdr & ev) {
+	os << setw(15) << ev.run << setw(15) << ev.lumi << setw(15) << ev.event;
+	return os;
 }

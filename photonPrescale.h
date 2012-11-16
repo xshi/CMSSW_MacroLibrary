@@ -48,6 +48,7 @@ class PhotonPrescale {
 			offsets.push_back(7);
 			offsets.push_back(10);
 			offsets.push_back(10);
+			offsets.push_back(10);
 		};
 		void addTrigger(const std::string & tN, double th, const std::string & fileName);
 		void addTrigger(const std::string & tN, double th);

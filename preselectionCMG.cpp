@@ -23,6 +23,7 @@
 #include "toolbox.h"
 #include "toolsCMG.h"
 #include <TRandom.h>
+#include <unordered_set>
 
 using std::cout;
 using std::cin;
@@ -32,6 +33,7 @@ using std::vector;
 using std::stringstream;
 using std::setw;
 using std::ofstream;
+using std::unordered_set;
 
 void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const Options & opt = Options::getInstance(); 
@@ -183,7 +185,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75);
 		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90);
 		photonPrescales.addTrigger("HLT_Photon135", 135);
-		//photonPrescales.addTrigger("HLT_Photon150", 150);
+		photonPrescales.addTrigger("HLT_Photon150", 150);
 		//photonPrescales.addTrigger("HLT_Photon160", 160);
 		thresholds.push_back(22);
 		thresholds.push_back(36);
@@ -191,7 +193,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		thresholds.push_back(75);
 		thresholds.push_back(90);
 		thresholds.push_back(135);
-		//thresholds.push_back(150);
+		thresholds.push_back(150);
 		//thresholds.push_back(160);
 		//photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
 		//photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
@@ -208,6 +210,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	//TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 100, 130, 230);
 	//ptSpectrum.Sumw2();
 
+	unordered_set<EventAdr> eventsSet;
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
 
 		if ( iEvent % 10000 == 0) {
@@ -248,6 +251,12 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		run = *runP;
 		lumi = *lumiP;
 		event = *eventP;
+
+		EventAdr tmp(run, lumi, event);
+		if (eventsSet.find( tmp ) != eventsSet.end()) {
+			continue;
+		}
+		eventsSet.insert( tmp );
 
 		if (type == ELE && (*cat) != 2) {
 			continue;
@@ -409,7 +418,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 				//	ptSpectrum.Fill(zpt, phPrescale[5]);
 				//}
 
-				if (phPrescale[5] != 1)
+				if (phPrescale[6] != 1)
 					throw string("Photon135 Prescaled!");
 				unsigned idx = photonPrescales.getIndex(zpt);
 				if ((*phTrigBits >> idx) & 0x1)

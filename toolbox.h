@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <iostream>
 
 class Event;
 
@@ -35,4 +36,30 @@ double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample);
 std::vector<std::string> tokenize(std::string text, char token);
 std::string encode(const std::string & str);
+
+
+class EventAdr {
+	private :
+		unsigned run;
+		unsigned lumi;
+		unsigned event;
+	public :
+		EventAdr() : run(0), lumi(0), event(0) {};
+		EventAdr(unsigned r, unsigned l, unsigned e) : run(r), lumi(l), event(e) {};
+		bool operator==(const EventAdr & ev) const {
+			return run == ev.run && lumi == ev.lumi && event == ev.event;
+		}
+		bool operator<(const EventAdr & ev) const {
+			if (run == ev.run) {
+				if (lumi == ev.lumi)
+					return event < ev.event;
+				else
+					return lumi < ev.lumi;
+			} else
+				return run < ev.run;
+			//return run < ev.run && lumi == ev.lumi && event == ev.event;
+		}
+		friend std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
+};
+std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
 #endif // EVENT_H
