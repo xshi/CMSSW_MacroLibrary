@@ -67,12 +67,14 @@ double myFunc(double a, double b, double c, double d, double x) {
 }
 
 double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
-		double b3, double c3, double b4, double c4, double zpt) {
+		double b3, double c3, double a4, double b4, double c4, double d4,
+		double zpt, bool merge) {
+
+	double x1 = 55;
+	double x2 = 82;
+	double x3 = 170;
 
 	double a1 = a1p / b1;
-	double x1 = 50;
-	double x2 = 70;
-	double x3 = 94;
 	if (zpt < x1) {
 		return myFunc(a1, b1, c1, d1, zpt);
 	} else {
@@ -90,11 +92,14 @@ double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
 			if (zpt < x3) {
 				return myFunc(a3, b3p, c3p, d3, zpt);
 			} else {
-				double b4p = b3p + b4;
-				double c4p = c3p + c4;
-				double a4 = calculateParA(a3, b3p, c3p, b4p, c4p, x3);
-				double d4 = calculateParD(a3, b3p, c3p, d3, a4, b4p, c4p, x3);
-				return myFunc(a4, b4p, c4p, d4, zpt);
+				if (merge) {
+					double b4p = b3p + b4;
+					double c4p = c3p + c4;
+					double a4p = calculateParA(a3, b3p, c3p, b4p, c4p, x3);
+					double d4p = calculateParD(a3, b3p, c3p, d3, a4p, b4p, c4p, x3);
+					return myFunc(a4p, b4p, c4p, d4p, zpt);
+				} else
+					return myFunc(a4, b4, c4, d4, zpt);
 			}
 		}
 	}

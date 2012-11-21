@@ -7,57 +7,29 @@
 
 class PhotonPrescale {
 	public :
-		class RunLumi {
-			public :
-				RunLumi(unsigned r, unsigned l) {
-					run = r;
-					lumi = l;
-				}
-				unsigned getRun() const {
-					return run;
-				}
-				unsigned getLumi() const {
-					return lumi;
-				}
-				bool operator<(const RunLumi & rl) const;
-			private :
-				unsigned run;
-				unsigned lumi;
-		};
 		class PhotonTrigger {
 			public :
-				PhotonTrigger(const std::string & trgName, double t) : name(trgName), threshold(t) {};
+				PhotonTrigger(const std::string & trgName, double t, double offs, unsigned idx) : name(trgName), threshold(t), offset(offs), index(idx) {};
 				std::string getTriggerName() const {
 					return name;
 				}
 				double getThreshold() const {
 					return threshold;
 				}
-				unsigned getPrescale(const RunLumi & rl, std::ostream & os);
 				void readInPrescales(const std::string & inputFileName);
+				unsigned getIndex() const {return index;}
+				double getOffset() const {return offset;}
 			private :
 				std::string name;
 				double threshold;
-				std::map<RunLumi, unsigned> prescales;
+				double offset;
+				unsigned index;
 		};
-		PhotonPrescale() {
-			offsets.clear();
-			offsets.push_back(5);
-			offsets.push_back(3);
-			offsets.push_back(5);
-			offsets.push_back(7);
-			offsets.push_back(10);
-			offsets.push_back(10);
-			offsets.push_back(10);
-		};
-		void addTrigger(const std::string & tN, double th, const std::string & fileName);
-		void addTrigger(const std::string & tN, double th);
-		unsigned getPrescale(unsigned run, unsigned lumi, double pt, std::ostream & os);
+		void addTrigger(const std::string & tN, double th, double offset, unsigned idx);
 		double nextThreshold(double pt) const;
 		unsigned getIndex(double pt);
 	private :
 		std::vector<PhotonTrigger> triggers;
-		std::vector<double> offsets;
 };
 
 #endif // PHOTONPRESCALE

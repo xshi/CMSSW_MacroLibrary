@@ -33,7 +33,7 @@ double calculateParA(double a1, double b1, double c1, double b2, double c2, doub
 double calculateParD(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double x);
 double myFunc(double a, double b, double c, double d, double x);
 double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
-		double b3, double c3, double b4, double c4, double zpt);
+		double b3, double c3, double a4, double b4, double c4, double d4, double zpt, bool merge);
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample);
 std::vector<std::string> tokenize(std::string text, char token);
 std::string encode(const std::string & str);

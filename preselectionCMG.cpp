@@ -19,6 +19,7 @@
 #include <TCanvas.h>
 #include <TFile.h>
 #include <TH1D.h>
+#include <TH2D.h>
 #include <TLorentzVector.h>
 #include "toolbox.h"
 #include "toolsCMG.h"
@@ -179,36 +180,23 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		RooAbsPdf * pdf = w->pdf("massPDF");
 		events = pdf->generate(*zmass, nentries);
 
-		photonPrescales.addTrigger("HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22);
-		photonPrescales.addTrigger("HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36);
-		photonPrescales.addTrigger("HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50);
-		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75);
-		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90);
-		photonPrescales.addTrigger("HLT_Photon135", 135);
-		photonPrescales.addTrigger("HLT_Photon150", 150);
-		//photonPrescales.addTrigger("HLT_Photon160", 160);
-		thresholds.push_back(22);
-		thresholds.push_back(36);
-		thresholds.push_back(50);
-		thresholds.push_back(75);
-		thresholds.push_back(90);
-		thresholds.push_back(135);
-		thresholds.push_back(150);
-		//thresholds.push_back(160);
-		//photonPrescales.addTrigger( "HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon22_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		//photonPrescales.addTrigger( "HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon36_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		//photonPrescales.addTrigger( "HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, opt.checkStringOption("PHOTON_PRESCALE_D:vert IRECTORY") + "/HLT_Photon50_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		//photonPrescales.addTrigger( "HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon75_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
-		//photonPrescales.addTrigger( "HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, opt.checkStringOption("PHOTON_PRESCALE_DIRECTORY") + "/HLT_Photon90_R9Id90_HE10_Iso40_EBOnly_PhotonPrescales.txt" );
+		photonPrescales.addTrigger("HLT_Photon22_R9Id90_HE10_Iso40_EBOnly", 22, 5, 0);
+		photonPrescales.addTrigger("HLT_Photon36_R9Id90_HE10_Iso40_EBOnly", 36, 3, 1);
+		photonPrescales.addTrigger("HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, 5, 2);
+		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, 7, 3);
+		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, 10, 4);
+		//photonPrescales.addTrigger("HLT_Photon135", 135, 10, 5);
+		photonPrescales.addTrigger("HLT_Photon150", 150, 20, 6);
 
 		phPrescale = ev.getAVA<int>("gn_prescale");
 		phTrigBits = ev.getSVA<int>("gn_triggerWord"); 
 	}
 
-	//TH1D effNum("effNum", "effNum", 40, 135, 155);
-	//TH1D effDen("effDen", "effDen", 40, 135, 155);
-	//TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 100, 130, 230);
-	//ptSpectrum.Sumw2();
+	//TH1D effNum("effNum", "effNum", 80, 90, 170);
+	//TH1D effDen("effDen", "effDen", 80, 90, 170);
+	TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 200, 30, 430);
+	//TH2D ptSpectrum("ptSpectrum", "ptSpectrum", 200, 30, 230, 8, 0, 8);
+	ptSpectrum.Sumw2();
 
 	unordered_set<EventAdr> eventsSet;
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
@@ -415,16 +403,17 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 				//effDen.Fill(zpt);
 				//if ((*phTrigBits >> 5) & 0x1) {
 				//	effNum.Fill(zpt);
-				//	ptSpectrum.Fill(zpt, phPrescale[5]);
 				//}
 
 				if (phPrescale[6] != 1)
-					throw string("Photon135 Prescaled!");
+					throw string("Photon150 Prescaled!");
 				unsigned idx = photonPrescales.getIndex(zpt);
 				if ((*phTrigBits >> idx) & 0x1)
 					weight = phPrescale[idx];
 				else
 					weight = 0;
+				//ptSpectrum.Fill(zpt, idx, weight);
+				ptSpectrum.Fill(zpt, weight);
 
 				//cout << weight << endl;
 				//cin.get();
@@ -565,19 +554,21 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	}
 	cout << endl;
 	
-	//TCanvas canv("canv", "canv", 800, 600);
+	TCanvas canv("canv", "canv", 800, 600);
 	//effNum.Sumw2();
 	//effDen.Sumw2();
 	//effNum.Divide(&effDen);
 	//effNum.Draw();
-	//canv.SetGridy();
-	//canv.SetGridx();
+	canv.SetGridy();
+	canv.SetGridx();
 	//canv.SaveAs("triggEff.ps");
 	//canv.Clear();
-	//ptSpectrum.SetMarkerStyle(20);
-	//ptSpectrum.Draw("P0E");
-	//canv.SetLogy();
-	//canv.SaveAs("ptSpectrum.ps");
+	ptSpectrum.SetMarkerStyle(20);
+	ptSpectrum.SetMarkerSize(0.5);
+	ptSpectrum.Draw("P0E");
+	//ptSpectrum.Draw("COLZ");
+	canv.SetLogy();
+	canv.SaveAs("ptSpectrum.ps");
 
 	delete file;
 	smallTree->Write("", TObject::kOverwrite);

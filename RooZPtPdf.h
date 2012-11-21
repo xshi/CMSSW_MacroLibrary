@@ -26,8 +26,11 @@ class RooZPtPdf : public RooAbsPdf {
 				RooAbsReal & _c2,
 				RooAbsReal & _b3,
 				RooAbsReal & _c3,
+				RooAbsReal & _a4,
 				RooAbsReal & _b4,
-				RooAbsReal & _c4
+				RooAbsReal & _c4,
+				RooAbsReal & _d4,
+				RooAbsReal & _merge
 				);
 		RooZPtPdf(const RooZPtPdf & other, const char * name = 0) ;
 		inline virtual TObject* clone(const char* newname) const { return new RooZPtPdf(*this, newname); }
@@ -43,8 +46,11 @@ class RooZPtPdf : public RooAbsPdf {
 		RooRealProxy c2;
 		RooRealProxy b3;
 		RooRealProxy c3;
+		RooRealProxy a4;
 		RooRealProxy b4;
 		RooRealProxy c4;
+		RooRealProxy d4;
+		RooRealProxy merge;
 	private:
 		ClassDef(RooZPtPdf,2);
 };
