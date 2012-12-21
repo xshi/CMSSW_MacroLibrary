@@ -262,7 +262,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			continue;
 		}
 
-		if (! *trigP) {
+		if (isData && !(*trigP)) {
 			continue;
 		}
 		//		cout << run << ":" << lumi << ":" << event << endl;
