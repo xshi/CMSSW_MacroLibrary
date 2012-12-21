@@ -128,13 +128,14 @@ MuonVariables::MuonVariables(const Event & ev) {
 }
 
 JetVariables::JetVariables(const Event & ev) {
-	jn = ev.findVariableIndex("jn");
-	j_px = ev.findVariableIndex("jn_px");
-	j_py = ev.findVariableIndex("jn_py");
-	j_pz = ev.findVariableIndex("jn_pz");
-	j_en = ev.findVariableIndex("jn_en");
-	j_btag = ev.findVariableIndex("jn_btag3");
-	j_genpt = ev.findVariableIndex("jn_genpt");
+	jn = ev.findVariableIndex("ajn");
+	j_px = ev.findVariableIndex("ajn_px");
+	j_py = ev.findVariableIndex("ajn_py");
+	j_pz = ev.findVariableIndex("ajn_pz");
+	j_en = ev.findVariableIndex("ajn_en");
+	j_btag = ev.findVariableIndex("ajn_btag3");
+	j_genpt = ev.findVariableIndex("ajn_genpt");
+	j_idbits = ev.findVariableIndex("ajn_idbits");
 }
 
 PhotonVariables::PhotonVariables(const Event & ev) {

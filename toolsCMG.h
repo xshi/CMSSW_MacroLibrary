@@ -143,6 +143,7 @@ struct JetVariables {
 	unsigned j_en;
 	unsigned j_btag;
 	unsigned j_genpt;
+	unsigned j_idbits;
 
 	JetVariables(const Event & ev);
 };

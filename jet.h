@@ -11,9 +11,11 @@ class Jet {
 		float en;
 		float btag;
 		float genpt;
+		int idbits;
 
-		Jet( float px_, float py_, float pz_, float en_, float btag_, float ptgen_ );		
+		Jet( float px_, float py_, float pz_, float en_, float btag_, float ptgen_, int idbits_ );		
 		TLorentzVector lorentzVector() const;
+		bool passesPUID() const;
 };
 
 #endif // JET_H

@@ -62,13 +62,17 @@ bool Muon::isTrackIsolatedTight() const {
 	return trkIso / lorentzVector().Pt() < 0.05;
 }
 
+double Muon::pfIsolation() const {
+	return (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
+}
+
 bool Muon::isPFIsolatedLoose() const {
-	double pfIsol = (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
+	double pfIsol = pfIsolation();
 	return pfIsol < 0.2;
 }
 
 bool Muon::isPFIsolatedTight() const {
-	double pfIsol = (chIso + max(0.0, nhIso + gIso - 0.5 * puchIso)) / lorentzVector().Pt();
+	double pfIsol = pfIsolation();
 	return pfIsol < 0.12;
 }
 

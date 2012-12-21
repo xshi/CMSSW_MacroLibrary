@@ -29,6 +29,7 @@ class Muon : public Lepton {
 		bool isTightMuon() const;
 		bool isTrackIsolatedLoose() const;
 		bool isTrackIsolatedTight() const;
+		double pfIsolation() const;
 		bool isPFIsolatedLoose() const;
 		bool isPFIsolatedTight() const;
 		bool isVBTF2011() const;

@@ -7,6 +7,7 @@
 #include "TLorentzVector.h" 
 #include <iomanip>
 #include <sstream>
+#include "jet.h"
 
 using std::stringstream;
 using std::setw;
@@ -15,7 +16,7 @@ using std::string;
 using std::cout;
 using std::endl;
 
-EventPrinter::EventPrinter(const Event & ev, const string & fN) {
+EventPrinter::EventPrinter(const Event & ev, PreselType t, const string & fN) {
 	run = ev.getSVA<int>("run");
 	lumi = ev.getSVA<int>("lumi");
 	event = ev.getSVA<int>("event");
@@ -25,16 +26,18 @@ EventPrinter::EventPrinter(const Event & ev, const string & fN) {
 	} else
 		output = &cout;
 	floatVars.push_back( ev.getSVA<float>("rho") );
-	floatVars.push_back( ev.getSVA<float>("rho25") );
 	intVars.push_back( ev.getSVA<int>("cat") );
 	floatVarsNames.push_back( "rho" );
-	floatVarsNames.push_back( "rho25" );
 	intVarsNames.push_back( "cat" );
 	printEle = false;
 	electrons = 0;
 	printMu = false;
 	muons = 0;
+	printZ = false;
+	printJets_ = false;
+	jets = 0;
 	useList = false;
+	type_ = t;
 }
 
 EventPrinter::~EventPrinter() {
@@ -56,22 +59,23 @@ void EventPrinter::printHeader() const {
 		(*output) << setw(10) << "Ele py";
 		(*output) << setw(10) << "Ele pz";
 		(*output) << setw(10) << "sceta";
-		(*output) << setw(10) << "isInCrack";
+//		(*output) << setw(10) << "isInCrack";
 		(*output) << setw(10) << "MediumID";
+		(*output) << setw(10) << "LooseID";
 		(*output) << setw(10) << "pfIso";
-		(*output) << setw(10) << "gIso";
-		(*output) << setw(10) << "chIso";
-		(*output) << setw(10) << "nhIso";
+//		(*output) << setw(10) << "gIso";
+//		(*output) << setw(10) << "chIso";
+//		(*output) << setw(10) << "nhIso";
 		(*output) << setw(10) << "isEB";
-		(*output) << setw(10) << "detain";
-		(*output) << setw(10) << "dphiin";
-		(*output) << setw(10) << "sihih";
-		(*output) << setw(10) << "hoe";
-		(*output) << setw(10) << "d0";
-		(*output) << setw(10) << "dZ";
-		(*output) << setw(10) << "ooemoop";
-		(*output) << setw(10) << "VFP";
-		(*output) << setw(10) << "trkLostIn";
+//		(*output) << setw(10) << "detain";
+//		(*output) << setw(10) << "dphiin";
+//		(*output) << setw(10) << "sihih";
+//		(*output) << setw(10) << "hoe";
+//		(*output) << setw(10) << "d0";
+//		(*output) << setw(10) << "dZ";
+//		(*output) << setw(10) << "ooemoop";
+//		(*output) << setw(10) << "VFP";
+//		(*output) << setw(10) << "trkLostIn";
 	}
 	if (printMu) {
 		(*output) << setw(10) << "Mu PT";
@@ -79,15 +83,30 @@ void EventPrinter::printHeader() const {
 		(*output) << setw(10) << "Mu PHI";
 		(*output) << setw(10) << "nMatches";
 		(*output) << setw(10) << "innerTrac";
+		(*output) << setw(10) << "TightID";
+		(*output) << setw(10) << "LooseID";
+		(*output) << setw(10) << "SoftID";
+		(*output) << setw(10) << "pfIso";
+	}
+	if (printZ) {
+		(*output) << setw(10) << "Z MASS";
+		(*output) << setw(10) << "Z PT";
+	}
+	if (printJets_) {
+		(*output) << setw(10) << "J En";
+		(*output) << setw(10) << "J PT";
+		(*output) << setw(10) << "J ETA";
+		(*output) << setw(10) << "J BTAG";
 	}
 	(*output) << endl;
+	(*output) << string(200, '-') << endl;
 }
 
 void EventPrinter::print() const {
 	if ( useList && selectedEvents.find( EventAddress(*run, *lumi, *event) ) == selectedEvents.end() )
 		return;
-	output->precision(2);
-	(*output) << std::scientific;
+	output->precision(4);
+	(*output) << std::fixed;
 	int lineLength = 0;
 	(*output) << setw(10) << (*run) << setw(10) << (*lumi) << setw(10) << (*event);
 	lineLength += 30;
@@ -106,13 +125,21 @@ void EventPrinter::print() const {
 		if (!electrons)
 			throw string("ERROR: Empty electrons collection!");
 		maxObjects = max( maxObjects, electrons->size() );
-		electronsLength = 50;
+		electronsLength = 230;
 	}
 	if (printMu) {
 		if (!muons)
 			throw string("ERROR: Empty muons collection!");
 		maxObjects = max( maxObjects, muons->size() );
 		muonsLength = 50;
+	}
+	if (printZ) {
+		maxObjects = max( maxObjects, 1 );
+	}
+	if (printJets_) {
+		if (!jets)
+			throw string("ERROR: Empty jets collection!");
+		maxObjects = max( maxObjects, jets->size() );
 	}
 
 	for (unsigned i = 0; i < maxObjects; ++i) {
@@ -127,22 +154,23 @@ void EventPrinter::print() const {
 				(*output) << setw(10) << (*electrons)[i].py;
 				(*output) << setw(10) << (*electrons)[i].pz;
 				(*output) << setw(10) << (*electrons)[i].sceta;
-				(*output) << setw(10) << (*electrons)[i].isInCrack();
+//				(*output) << setw(10) << (*electrons)[i].isInCrack();
 				(*output) << setw(10) << (*electrons)[i].passesMediumID();
-				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[0], false);
-				(*output) << setw(10) << (*electrons)[i].gIso;
-				(*output) << setw(10) << (*electrons)[i].chIso;
-				(*output) << setw(10) << (*electrons)[i].nhIso;
+				(*output) << setw(10) << (*electrons)[i].passesLooseID();
+				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[1], false);
+//				(*output) << setw(10) << (*electrons)[i].gIso;
+//				(*output) << setw(10) << (*electrons)[i].chIso;
+//				(*output) << setw(10) << (*electrons)[i].nhIso;
 				(*output) << setw(10) << (*electrons)[i].isEB();
-				(*output) << setw(10) << (*electrons)[i].detain;
-				(*output) << setw(10) << (*electrons)[i].dphiin;
-				(*output) << setw(10) << (*electrons)[i].sihih;
-				(*output) << setw(10) << (*electrons)[i].hoe;
-				(*output) << setw(10) << (*electrons)[i].d0;
-				(*output) << setw(10) << (*electrons)[i].dZ;
-				(*output) << setw(10) << (*electrons)[i].ooemoop;
-				(*output) << setw(10) << (((*electrons)[i].idbits >> 5) & 0x1);
-				(*output) << setw(10) << (*electrons)[i].trkLostInnerHits;
+//				(*output) << setw(10) << (*electrons)[i].detain;
+//				(*output) << setw(10) << (*electrons)[i].dphiin;
+//				(*output) << setw(10) << (*electrons)[i].sihih;
+//				(*output) << setw(10) << (*electrons)[i].hoe;
+//				(*output) << setw(10) << (*electrons)[i].d0;
+//				(*output) << setw(10) << (*electrons)[i].dZ;
+//				(*output) << setw(10) << (*electrons)[i].ooemoop;
+//				(*output) << setw(10) << (((*electrons)[i].idbits >> 5) & 0x1);
+//				(*output) << setw(10) << (*electrons)[i].trkLostInnerHits;
 			} else
 				(*output) << setw(electronsLength) << "";
 		}
@@ -153,13 +181,43 @@ void EventPrinter::print() const {
 				(*output) << setw(10) << (*muons)[i].lorentzVector().Phi();
 				(*output) << setw(10) << (*muons)[i].nMatches;
 				(*output) << setw(10) << (*muons)[i].innerTrackChi2;
+				(*output) << setw(10) << (*muons)[i].isTightMuon();
+				(*output) << setw(10) << (*muons)[i].isLooseMuon();
+				(*output) << setw(10) << (*muons)[i].isSoftMuon();
+				(*output) << setw(10) << (*muons)[i].pfIsolation();
 			} else
 				(*output) << setw(muonsLength) << "";
+		}
+		if (printZ) {
+			if (i == 0) {
+				TLorentzVector lep1;
+				TLorentzVector lep2;
+				if (type_ == ELE) {
+					lep1 = (*electrons)[0].lorentzVector();
+					lep2 = (*electrons)[1].lorentzVector();
+				} else if (type_ == MU) {
+					lep1 = (*muons)[0].lorentzVector();
+					lep2 = (*muons)[1].lorentzVector();
+				}
+				TLorentzVector Zcand = lep1 + lep2;
+				(*output) << setw(10) << Zcand.M();
+				(*output) << setw(10) << Zcand.Pt();
+			} else
+				(*output) << setw(20) << "";
+		}
+		if (printJets_) {
+			if (i < jets->size() ) {
+				(*output) << setw(10) << (*jets)[i].lorentzVector().E();
+				(*output) << setw(10) << (*jets)[i].lorentzVector().Pt();
+				(*output) << setw(10) << (*jets)[i].lorentzVector().Eta();
+				(*output) << setw(10) << (*jets)[i].btag;
+			}
 		}
 		if (i < maxObjects - 1)
 			(*output) << endl;
 	}
 	(*output) << endl;
+	//(*output) << string(200, '-') << endl;
 }
 
 void EventPrinter::readInEvents(const string & inFileName) {

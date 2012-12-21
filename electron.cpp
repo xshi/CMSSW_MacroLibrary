@@ -57,41 +57,41 @@ bool Electron::isInCrack() const {
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
-double Electron::effAreaMC() const {
-	double abseta = fabs(sceta);
-	if (abseta < 1.0)
-		return 0.18;
-	else if (abseta < 1.479)
-		return 0.21;
-	else if (abseta < 2.0)
-		return 0.16;
-	else if (abseta < 2.2)
-		return 0.22;
-	else if (abseta < 2.3)
-		return 0.27;
-	else if (abseta < 2.4)
-		return 0.30;
-	else
-		return 0.41;
-}
+//double Electron::effAreaMC() const {
+//	double abseta = fabs(sceta);
+//	if (abseta < 1.0)
+//		return 0.18;
+//	else if (abseta < 1.479)
+//		return 0.21;
+//	else if (abseta < 2.0)
+//		return 0.16;
+//	else if (abseta < 2.2)
+//		return 0.22;
+//	else if (abseta < 2.3)
+//		return 0.27;
+//	else if (abseta < 2.4)
+//		return 0.30;
+//	else
+//		return 0.41;
+//}
 
 double Electron::effAreaDATA() const {
 	//double abseta = fabs(lorentzVector().Eta());
 	double abseta = fabs(sceta);
 	if (abseta < 1.0)
-		return 0.19;
-	else if (abseta < 1.479)
-		return 0.25;
-	else if (abseta < 2.0)
-		return 0.12;
-	else if (abseta < 2.2)
 		return 0.21;
+	else if (abseta < 1.479)
+		return 0.21;
+	else if (abseta < 2.0)
+		return 0.11;
+	else if (abseta < 2.2)
+		return 0.14;
 	else if (abseta < 2.3)
-		return 0.27;
+		return 0.18;
 	else if (abseta < 2.4)
-		return 0.44;
+		return 0.19;
 	else
-		return 0.52;
+		return 0.26;
 }
 
 double Electron::pfIsolation(double rho, bool isData) const {

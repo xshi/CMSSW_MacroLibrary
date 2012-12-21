@@ -6,10 +6,12 @@
 #include<memory>
 #include<vector>
 #include<set>
+#include "preselectionCMG.h"
 
 class Event;
 class Electron;
 class Muon;
+class Jet;
 
 class EventPrinter {
 	private :
@@ -38,13 +40,17 @@ class EventPrinter {
 		const std::vector<Electron> * electrons;
 		bool printMu;
 		const std::vector<Muon> * muons;
+		bool printZ;
 		bool useList;
+		bool printJets_;
+		const std::vector<Jet> * jets;
+		PreselType type_;	
 		std::set<EventAddress> selectedEvents;
 		EventPrinter(const EventPrinter &);
 		bool operator=(const EventPrinter &);
 		friend std::ostream & operator<<(std::ostream & os, const EventAddress & ev);
 	public :
-		EventPrinter(const Event & ev, const std::string & fN = "");
+		EventPrinter(const Event & ev, PreselType t, const std::string & fN = "");
 		~EventPrinter();
 		void print() const;
 		void printHeader() const;
@@ -59,6 +65,15 @@ class EventPrinter {
 		}
 		void setMuonCollection(const std::vector<Muon> & mu) {
 			muons = &mu;
+		}
+		void printZboson() {
+			printZ = true;
+		}
+		void printJets() {
+			printJets_ = true;
+		}
+		void setJetCollection(const std::vector<Jet> & j) {
+			jets = &j;
 		}
 		void readInEvents(const std::string & inFileName);
 		void printSelectedEvents() const;
