@@ -53,6 +53,25 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	string inputFile = inputDir + '/' + sampleName + ".root";
 	cout << "\tInput file: " << inputFile << endl;
 
+	bool isSignal = opt.checkBoolOption("SIGNAL");
+	TGraph * higgsW = 0;
+	if (isSignal) {
+		double higgsM = opt.checkDoubleOption("HIGGS_MASS");
+		if (higgsM >= 400) {
+			bool isVBF = opt.checkBoolOption("VBF");
+			if (isVBF) {
+				TFile weightFile("VBFLineShapeWeights.root");
+				string dirName = "H" + double2string(higgsM);
+				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get("cpsWgt")->Clone();
+
+			} else {
+				TFile weightFile("LineShapeWeights.root");
+				string dirName = "Higgs" + double2string(higgsM) + "_8TeV";
+				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get("rwgtpint")->Clone();
+			}
+		}
+	}
+
 	TFile * file = new TFile( inputFile.c_str() );
 	if (!file->IsOpen())
 		throw string("ERROR: Can't open the file: " + inputFile + "!");
@@ -78,19 +97,23 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const int * cat = ev.getSVA<int>("cat"); 
 	const int * phPrescale = 0;
 	const int * phTrigBits = 0;
+	const float * Hpx = ev.getSVA<float>("h_px");
+	const float * Hpy = ev.getSVA<float>("h_py");
+	const float * Hpz = ev.getSVA<float>("h_pz");
+	const float * Hen = ev.getSVA<float>("h_en");
 	
 	string eventFileName;
 	if (type == ELE)
 		eventFileName = "events_ele.txt";
 	else if (type == MU)
 		eventFileName = "events_mu.txt";
-	EventPrinter evPrint(ev, type, eventFileName);
-	evPrint.readInEvents("diff.txt");
+	//EventPrinter evPrint(ev, type, eventFileName);
+	//evPrint.readInEvents("diff.txt");
 	//evPrint.printElectrons();
 	//evPrint.printMuons();
-	evPrint.printZboson();
-	evPrint.printJets();
-	evPrint.printHeader();
+	//evPrint.printZboson();
+	//evPrint.printJets();
+	//evPrint.printHeader();
 
 	string outputFile = outputDir + '/' + sampleName;
 
@@ -139,6 +162,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	int ni;
 	int category;
 	double weight;
+	double hmass;
+	double hweight;
 
 	TTree * smallTree = new TTree("HZZ2l2nuAnalysis", "HZZ2l2nu Analysis Tree");
 	smallTree->Branch( "Run", &run, "Run/i" );
@@ -168,6 +193,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	smallTree->Branch( "nInter" , &ni, "nInter/I" );
 	smallTree->Branch( "CATEGORY", &category, "CATEGORY/I" );
 	smallTree->Branch( "Weight" , &weight, "Weight/D" );
+	smallTree->Branch( "HMASS", &hmass, "HMASS/D" );
+	smallTree->Branch( "HWEIGHT", &hweight, "HWEIGHT/D" );
 
 	bool isData = opt.checkBoolOption("DATA");
 
@@ -241,6 +268,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		ni = -999;
 		weight = -999;
 		category = -1;
+		hmass = -999;
+		hweight = -999;
 
 		run = *runP;
 		lumi = *lumiP;
@@ -322,8 +351,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			}
 		}
 
-		evPrint.setElectronCollection(selectedElectrons);
-		evPrint.setMuonCollection(selectedMuons);
+		//evPrint.setElectronCollection(selectedElectrons);
+		//evPrint.setMuonCollection(selectedMuons);
 
 		vector<Photon> photons = selectPhotonsCMG( ev, photonVars );
 		vector<Photon> selectedPhotons;
@@ -498,7 +527,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if ( type == PHOT && nsoftjet == 0 )
 			continue;
 
-		evPrint.setJetCollection(hardjets);
+		//evPrint.setJetCollection(hardjets);
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
@@ -562,7 +591,15 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		else
 			ni = *niP;
 
-		evPrint.print();
+		TLorentzVector higgs;
+		higgs.SetPxPyPzE( *Hpx, *Hpy, *Hpz, *Hen );
+		hmass = higgs.M();
+		if (higgsW)
+			hweight = higgsW->Eval(hmass);
+		else
+			hweight = 1;
+
+		//evPrint.print();
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
