@@ -300,6 +300,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		//				continue;
 		//		}
 
+
 		vector<Electron> electrons = buildElectronCollection(ev, leptonVars, electronVars);
 		vector<Muon> muons = buildMuonCollection(ev, leptonVars, muonVars);
 
@@ -375,7 +376,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			looseElectrons = tmpElectrons;
 		}
 
-		if (!selectedFirst || !selectedSecond)
+		if ((type == ELE || type == MU) && !(selectedFirst && selectedSecond))
 			continue;
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
