@@ -70,9 +70,9 @@ double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
 		double b3, double c3, double a4, double b4, double c4, double d4,
 		double zpt, bool merge) {
 
-	double x1 = 72;
-	double x2 = 100;
-	double x3 = 170;
+	double x1 = 90;
+	double x2 = 160;
+	double x3 = 265;
 
 	double a1 = a1p / b1;
 	if (zpt < x1) {

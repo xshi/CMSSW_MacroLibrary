@@ -209,7 +209,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if (w == nullptr)
 			throw string("ERROR: No mass peak pdf!");
 		RooRealVar * zmass = w->var("mass");
-		zmass->setRange(76.2, 106.2);
+		zmass->setRange(76.0, 106.0);
 		RooAbsPdf * pdf = w->pdf("massPDF");
 		events = pdf->generate(*zmass, nentries);
 
@@ -218,8 +218,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		photonPrescales.addTrigger("HLT_Photon50_R9Id90_HE10_Iso40_EBOnly", 50, 5, 2);
 		photonPrescales.addTrigger("HLT_Photon75_R9Id90_HE10_Iso40_EBOnly", 75, 7, 3);
 		photonPrescales.addTrigger("HLT_Photon90_R9Id90_HE10_Iso40_EBOnly", 90, 10, 4);
-		//photonPrescales.addTrigger("HLT_Photon135", 135, 10, 5);
-		photonPrescales.addTrigger("HLT_Photon150", 150, 20, 6);
+//		photonPrescales.addTrigger("HLT_Photon135", 135, 18, 5);
+		photonPrescales.addTrigger("HLT_Photon150", 150, 60, 6);
 
 		phPrescale = ev.getAVA<int>("gn_prescale");
 		phTrigBits = ev.getSVA<int>("gn_triggerWord"); 
@@ -227,7 +227,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 	//TH1D effNum("effNum", "effNum", 80, 90, 170);
 	//TH1D effDen("effDen", "effDen", 80, 90, 170);
-	TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 200, 30, 430);
+	TH1D ptSpectrum("ptSpectrum", "ptSpectrum", 200, 55, 755);
 	//TH2D ptSpectrum("ptSpectrum", "ptSpectrum", 200, 30, 230, 8, 0, 8);
 	ptSpectrum.Sumw2();
 
@@ -609,7 +609,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if ( opt.checkBoolOption("ZPT_CUT") && zpt < 55 )
 			continue;
 		// for different background estimation methods different window should be applied:
-		// * sample for photons should have 76.2 < zmass < 106.2
+		// * sample for photons should have 76.0 < zmass < 106.0
 		// * sample for non-resonant background should not have this cut applied
 		if ( opt.checkBoolOption("TIGHT_ZMASS_CUT") && (type == ELE || type == MU) && (zmass < 76.0 || zmass > 106.0))
 			continue;
