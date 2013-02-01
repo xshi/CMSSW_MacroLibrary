@@ -2,7 +2,7 @@
 #include "RooZPtPdf.h" 
 #include "toolbox.h"
 
-ClassImp(RooZPtPdf);
+ClassImp(RooZPtPdf)
 
 RooZPtPdf::RooZPtPdf(const char *name, const char *title, RooAbsReal & _zpt,
 		RooAbsReal & _a1, RooAbsReal & _b1,

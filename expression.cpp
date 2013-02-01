@@ -10,9 +10,9 @@ using std::string;
 using std::unique_ptr;
 using std::map;
 
-Expression::Expression(double val) : type_(VALUE), value_(val) {};
+Expression::Expression(double val) : type_(VALUE), value_(val) {}
 
-Expression::Expression(const string & varName) : type_(VARIABLE), varName_(varName) {};
+Expression::Expression(const string & varName) : type_(VARIABLE), varName_(varName) {}
 
 Expression::Expression(Operator op, const Expression & right) : type_(UNARY),
 		op_(op), rexpr_(new Expression(right)) {}

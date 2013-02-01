@@ -249,10 +249,10 @@ void EventPrinter::printSelectedEvents() const {
 		cout << *iter << endl;
 }
 
-EventPrinter::EventAddress::EventAddress() : run(0), lumi(0), event(0) {};
+EventPrinter::EventAddress::EventAddress() : run(0), lumi(0), event(0) {}
 
 EventPrinter::EventAddress::EventAddress(unsigned r, unsigned l, unsigned e)
-	: run(r), lumi(l), event(e) {};
+	: run(r), lumi(l), event(e) {}
 
 bool EventPrinter::EventAddress::operator==(const EventAddress & ev) const {
 	return run == ev.run && lumi == ev.lumi && event == ev.event;

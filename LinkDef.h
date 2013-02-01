@@ -1,3 +1,8 @@
+#include "triggerinfo.h"
+#include "RooFermi.h"
+#include "RooZPtPdf.h"
+#include "RooCMSShape.h"
+
 #ifdef __CINT__
 
 #pragma link off all global;
