@@ -170,6 +170,8 @@ std::string encode(const std::string & text) {
 		pos = str.find("<");
 	}
 
+	if (str.size() > 128)
+		str.erase(128);
 	return str;
 }
 
@@ -181,3 +183,35 @@ ostream & operator<<(ostream & os, const EventAdr & ev) {
 	os << setw(15) << ev.run << setw(15) << ev.lumi << setw(15) << ev.event;
 	return os;
 }
+
+double metCutValue(double mh) {
+	if (mh < 300)
+		return 90;
+	else if (mh < 450)
+		return 100;
+	else if (mh < 500)
+		return 120;
+	else
+		return 130;
+}
+
+std::pair<double, double> mtCutValue(double mh) {
+	if (mh < 250)
+		return std::make_pair(150, 225);
+	else if (mh < 300)
+		return std::make_pair(175, 275);
+	else if (mh < 350)
+		return std::make_pair(275, 350);
+	else if (mh < 400)
+		return std::make_pair(325, 375);
+	else if (mh < 450)
+		return std::make_pair(350, 450);
+	else if (mh < 500)
+		return std::make_pair(400, 500);
+	else if (mh < 550)
+		return std::make_pair(400, 700);
+	else if (mh < 600)
+		return std::make_pair(450, 700);
+	else
+		return std::make_pair(500, -1);
+}	

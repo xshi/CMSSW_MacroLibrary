@@ -72,5 +72,6 @@ class EventAdr {
 };
 
 std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
-
+double metCutValue(double mh);
+std::pair<double, double> mtCutValue(double mh);
 #endif // EVENT_H

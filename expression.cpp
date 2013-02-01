@@ -95,6 +95,8 @@ double Expression::eval(const std::map<string, double> & parameters) const {
 				return lVal || rVal;
 			case SUM:
 				return lVal + rVal;
+			case PRO:
+				return lVal * rVal;
 			default:
 				throw string("ERROR: Unknown operator type!");
 		}
@@ -172,6 +174,9 @@ string Expression::print(const map<string, double> & parameters) const {
 				break;
 			case SUM:
 				opStr = "+";
+				break;
+			case PRO:
+				opStr = "*";
 				break;
 			default:
 				throw string("ERROR: Unknown operator type!");

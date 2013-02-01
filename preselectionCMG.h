@@ -21,8 +21,8 @@ class TLorentzVector;
 class RooWorkspace;
 
 void LeptonPreselectionCMG( PreselType type, RooWorkspace * massPeak = nullptr );
-Jet smearedJet(const Jet & origJet);
-TLorentzVector smearJets(std::vector<Jet> & jets);
+Jet smearedJet(const Jet & origJet, unsigned mode);
+TLorentzVector smearJets(std::vector<Jet> & jets, unsigned mode = 0);
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);
 std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars, const ElectronVariables & electronVars);
 void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);

@@ -55,6 +55,8 @@ Expression::Operator Parser::identifyOperator( const std::string & expr ) {
 		return Expression::OR;
 	else if (expr == "+")
 		return Expression::SUM;
+	else if (expr == "*")
+		return Expression::PRO;
 	else
 		throw string("ERROR: Can't recognize operator type: " + expr + "!");
 }

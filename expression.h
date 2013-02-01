@@ -7,7 +7,7 @@
 
 class Expression {
 	public:
-		enum Operator { GR, GEQ, LE, LEQ, EQ, NEQ, NOT, AND, OR, SUM };
+		enum Operator { GR, GEQ, LE, LEQ, EQ, NEQ, NOT, AND, OR, SUM, PRO };
 		enum ExprT { VALUE, VARIABLE, UNARY, BINARY };
 		Expression() {};
 		Expression(double val);

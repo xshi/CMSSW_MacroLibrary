@@ -954,17 +954,17 @@ vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, double
 	return jets;
 }
 
-TLorentzVector smearJets(vector<Jet> & jets) {
+TLorentzVector smearJets(vector<Jet> & jets, unsigned mode) {
 	TLorentzVector jetDiff;
 	for ( unsigned j = 0; j < jets.size(); ++j ) {
-		Jet smJet = smearedJet( jets[j] );
+		Jet smJet = smearedJet( jets[j], mode );
 		jetDiff += (smJet.lorentzVector() - jets[j].lorentzVector());
 		jets[j] = smJet;
 	}
 	return jetDiff;
 }
 
-Jet smearedJet(const Jet & origJet) {
+Jet smearedJet(const Jet & origJet, unsigned mode) {
 	if (origJet.genpt <= 0)
 		return origJet;
 
@@ -986,6 +986,11 @@ Jet smearedJet(const Jet & origJet) {
 		ptSF = 1.166;
 		ptSF_err = sqrt(pow(0.050, 2) + pow(0.5 * (0.19 + 0.199), 2));
 	}
+
+	if (mode == 1)
+		ptSF += ptSF_err;
+	else if (mode == 2)
+		ptSF -= ptSF_err;
 	
 	ptSF = max(0., (origJet.genpt + gRandom->Gaus(ptSF, ptSF_err) * (pt - origJet.genpt))) / pt;  //deterministic version
 	if (ptSF <= 0)
