@@ -26,9 +26,9 @@ EventPrinter::EventPrinter(const Event & ev, PreselType t, const string & fN) {
 	} else
 		output = &cout;
 	floatVars.push_back( ev.getSVA<float>("rho") );
-	intVars.push_back( ev.getSVA<int>("cat") );
+//	intVars.push_back( ev.getSVA<int>("cat") );
 	floatVarsNames.push_back( "rho" );
-	intVarsNames.push_back( "cat" );
+//	intVarsNames.push_back( "cat" );
 	printEle = false;
 	electrons = 0;
 	printMu = false;
@@ -47,6 +47,12 @@ EventPrinter::~EventPrinter() {
 
 void EventPrinter::printHeader() const {
 	(*output) << setw(10) << "RUN" << setw(10) << "LUMI" << setw(10) << "EVENT";
+	(*output) << setw(10) << "BITS";
+	(*output) << setw(10) << "nJets";
+	(*output) << setw(10) << "MET";
+	(*output) << setw(10) << "MT";
+	(*output) << setw(15) << "CAT";
+
 	for (unsigned i = 0; i < floatVarsNames.size(); ++i)
 		(*output) << setw(10) << floatVarsNames[i];
 	for (unsigned i = 0; i < intVarsNames.size(); ++i)
@@ -59,23 +65,23 @@ void EventPrinter::printHeader() const {
 		(*output) << setw(10) << "Ele py";
 		(*output) << setw(10) << "Ele pz";
 		(*output) << setw(10) << "sceta";
-//		(*output) << setw(10) << "isInCrack";
+		//		(*output) << setw(10) << "isInCrack";
 		(*output) << setw(10) << "MediumID";
 		(*output) << setw(10) << "LooseID";
 		(*output) << setw(10) << "pfIso";
-//		(*output) << setw(10) << "gIso";
-//		(*output) << setw(10) << "chIso";
-//		(*output) << setw(10) << "nhIso";
+		//		(*output) << setw(10) << "gIso";
+		//		(*output) << setw(10) << "chIso";
+		//		(*output) << setw(10) << "nhIso";
 		(*output) << setw(10) << "isEB";
-//		(*output) << setw(10) << "detain";
-//		(*output) << setw(10) << "dphiin";
-//		(*output) << setw(10) << "sihih";
-//		(*output) << setw(10) << "hoe";
-//		(*output) << setw(10) << "d0";
-//		(*output) << setw(10) << "dZ";
-//		(*output) << setw(10) << "ooemoop";
-//		(*output) << setw(10) << "VFP";
-//		(*output) << setw(10) << "trkLostIn";
+		//		(*output) << setw(10) << "detain";
+		//		(*output) << setw(10) << "dphiin";
+		//		(*output) << setw(10) << "sihih";
+		//		(*output) << setw(10) << "hoe";
+		//		(*output) << setw(10) << "d0";
+		//		(*output) << setw(10) << "dZ";
+		//		(*output) << setw(10) << "ooemoop";
+		//		(*output) << setw(10) << "VFP";
+		//		(*output) << setw(10) << "trkLostIn";
 	}
 	if (printMu) {
 		(*output) << setw(10) << "Mu PT";
@@ -91,15 +97,25 @@ void EventPrinter::printHeader() const {
 	if (printZ) {
 		(*output) << setw(10) << "Z MASS";
 		(*output) << setw(10) << "Z PT";
+		(*output) << setw(10) << "Z ETA";
 	}
 	if (printJets_) {
 		(*output) << setw(10) << "J En";
 		(*output) << setw(10) << "J PT";
 		(*output) << setw(10) << "J ETA";
+		(*output) << setw(10) << "J DETA";
+		(*output) << setw(10) << "J PHI";
 		(*output) << setw(10) << "J BTAG";
+		(*output) << setw(10) << "J DPHI";
 	}
 	(*output) << endl;
 	(*output) << string(200, '-') << endl;
+}
+
+bool EventPrinter::selectedEvent() const {
+	if ( useList && selectedEvents.find( EventAddress(*run, *lumi, *event) ) != selectedEvents.end() )
+		return true;
+	return false;
 }
 
 void EventPrinter::print() const {
@@ -110,6 +126,8 @@ void EventPrinter::print() const {
 	int lineLength = 0;
 	(*output) << setw(10) << (*run) << setw(10) << (*lumi) << setw(10) << (*event);
 	lineLength += 30;
+	(*output) << setw(10) << bits << setw(10) << jets->size() << setw(10) << met.Pt() << setw(10) << mt << setw(15) << channel;
+	lineLength += 55;
 	for (unsigned i = 0; i < floatVars.size(); ++i) {
 		(*output) << setw(10) << (*floatVars[i]);
 		lineLength += 10;
@@ -131,7 +149,7 @@ void EventPrinter::print() const {
 		if (!muons)
 			throw string("ERROR: Empty muons collection!");
 		maxObjects = max( maxObjects, muons->size() );
-		muonsLength = 50;
+		muonsLength = 90;
 	}
 	if (printZ) {
 		maxObjects = max( maxObjects, 1 );
@@ -202,15 +220,22 @@ void EventPrinter::print() const {
 				TLorentzVector Zcand = lep1 + lep2;
 				(*output) << setw(10) << Zcand.M();
 				(*output) << setw(10) << Zcand.Pt();
+				(*output) << setw(10) << Zcand.Eta();
 			} else
-				(*output) << setw(20) << "";
+				(*output) << setw(30) << "";
 		}
 		if (printJets_) {
 			if (i < jets->size() ) {
 				(*output) << setw(10) << (*jets)[i].lorentzVector().E();
 				(*output) << setw(10) << (*jets)[i].lorentzVector().Pt();
 				(*output) << setw(10) << (*jets)[i].lorentzVector().Eta();
+				if (i)
+					(*output) << setw(10) << (*jets)[i].lorentzVector().Eta() - (*jets)[i - 1].lorentzVector().Eta();
+				else
+					(*output) << setw(10) << "";
+				(*output) << setw(10) << (*jets)[i].lorentzVector().Phi();
 				(*output) << setw(10) << (*jets)[i].btag;
+				(*output) << setw(10) << deltaPhi((*jets)[i].lorentzVector().Phi(), met.Phi());
 			}
 		}
 		if (i < maxObjects - 1)

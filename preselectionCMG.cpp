@@ -25,6 +25,8 @@
 #include "toolsCMG.h"
 #include <TRandom.h>
 #include <unordered_set>
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
 using std::cout;
 using std::cin;
@@ -47,6 +49,17 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	else if (type == PHOT)
 		cout << "Running Photon Preselection :" << endl;
 
+	string systVar;
+	try {
+		systVar = opt.checkStringOption("SYSTEMATIC_VAR");
+	} catch (const std::string & exc) {
+		cout << exc << endl;
+	}
+	if (systVar == "NONE")
+		systVar.clear();
+
+	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
+
 	string inputDir = opt.checkStringOption("INPUT_DIR");
 	string outputDir = opt.checkStringOption("OUTPUT_DIR");
 	string sampleName = opt.checkStringOption("SAMPLE_NAME");
@@ -55,19 +68,30 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 	bool isSignal = opt.checkBoolOption("SIGNAL");
 	TGraph * higgsW = 0;
+	TGraph * higgsI = 0;
 	if (isSignal) {
 		double higgsM = opt.checkDoubleOption("HIGGS_MASS");
 		if (higgsM >= 400) {
+			string dirName = "H" + double2string(higgsM);
 			bool isVBF = opt.checkBoolOption("VBF");
+			string lshapeHistName = "cps";
+			string intHistName = "nominal";
+			
+			if (systVar == "LSHAPE_UP") {
+				intHistName = "up";
+			} else if (systVar == "LSHAPE_DOWN") {
+				intHistName = "down";
+			}
+
 			if (isVBF) {
-				TFile weightFile("VBFLineShapeWeights.root");
-				string dirName = "H" + double2string(higgsM);
-				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get("cpsWgt")->Clone();
+				TFile weightFile("VBF_LineShapes.root");
+				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get( lshapeHistName.c_str() )->Clone();
 
 			} else {
-				TFile weightFile("LineShapeWeights.root");
-				string dirName = "Higgs" + double2string(higgsM) + "_8TeV";
-				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get("rwgtpint")->Clone();
+				TFile weightFile("GG_LineShapes.root");
+				higgsW = (TGraph *) ( (TDirectory *) weightFile.Get(dirName.c_str()))->Get( lshapeHistName.c_str() )->Clone();
+				TFile interfFile("newwgts_interf.root");
+				higgsI = (TGraph *) ( (TDirectory *) interfFile.Get(dirName.c_str()))->Get( intHistName.c_str() )->Clone();
 			}
 		}
 	}
@@ -102,11 +126,11 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const float * Hpz = ev.getSVA<float>("h_pz");
 	const float * Hen = ev.getSVA<float>("h_en");
 	
-	string eventFileName;
-	if (type == ELE)
-		eventFileName = "events_ele.txt";
-	else if (type == MU)
-		eventFileName = "events_mu.txt";
+	//string eventFileName;
+	//if (type == ELE)
+	//	eventFileName = "events_ele.txt";
+	//else if (type == MU)
+	//	eventFileName = "events_mu.txt";
 	//EventPrinter evPrint(ev, type, eventFileName);
 	//evPrint.readInEvents("diff.txt");
 	//evPrint.printElectrons();
@@ -116,6 +140,9 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	//evPrint.printHeader();
 
 	string outputFile = outputDir + '/' + sampleName;
+
+	if (systVar.size())
+		outputFile += ('_' + systVar);
 
 	if (type == ELE)
 		outputFile += "_elePresel.root";
@@ -294,6 +321,9 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if (isData && !(*trigP)) {
 			continue;
 		}
+
+		//evPrint.print();
+		
 		//		cout << run << ":" << lumi << ":" << event << endl;
 		//		if (isData) {
 		//			if (!triggerAccept(ev, type))
@@ -475,10 +505,32 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			}
 		}
 
-		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars );
+		TLorentzVector met;
+		met.SetPtEtaPhiM(metPtA[2], 0.0, metPhiA[2], 0.0);
+		TLorentzVector clusteredFlux;
+
+		unsigned mode = 0;
+		if (systVar == "JES_UP")
+			mode = 1;
+		else if (systVar == "JES_DOWN")
+			mode = 2;
+		TLorentzVector jecCorr;
+		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, jecUnc, &jecCorr, mode );
+		met -= jecCorr;
+
+		mode = 0;
+		if (systVar == "JER_UP")
+			mode = 1;
+		else if (systVar == "JER_DOWN")
+			mode = 2;
+		TLorentzVector smearCorr = smearJets( jetsAll, mode );
+		if (isData && smearCorr != TLorentzVector())
+			throw std::string("Jet smearing corrections different from zero in DATA!");
+		met -= smearCorr;
+
 		vector<Jet> selectedJets;
 		for (unsigned i = 0; i < jetsAll.size(); ++i) {
-			if (jetsAll[i].passesPUID())
+			if (jetsAll[i].lorentzVector().Pt() > 10 && fabs(jetsAll[i].lorentzVector().Eta()) < 4.7 && jetsAll[i].passesPUID())
 				selectedJets.push_back( jetsAll[i] );
 		}
 		if (type == PHOT) {
@@ -495,13 +547,40 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			selectedJets = tmpJets;
 		}
 
-		TLorentzVector jetDiff = smearJets( selectedJets );
-		if (isData && jetDiff != TLorentzVector())
-			throw std::string("Jet Corrections different from zero in DATA!");
+		if (systVar == "UMET_UP" || systVar == "UMET_DOWN") {
+			for (unsigned i = 0; i < jetsAll.size(); ++i)
+				clusteredFlux += jetsAll[i].lorentzVector();
+			for (unsigned i = 0; i < looseElectrons.size(); ++i)
+				clusteredFlux += looseElectrons[i].lorentzVector();
+			for (unsigned i = 0; i < looseMuons.size(); ++i)
+				clusteredFlux += looseMuons[i].lorentzVector();
 
-		TLorentzVector met;
-		met.SetPtEtaPhiM(metPtA[2], 0.0, metPhiA[2], 0.0);
-		met -= jetDiff;
+			TLorentzVector unclusteredFlux = -(met + clusteredFlux);
+			if (systVar == "UMET_UP")
+				unclusteredFlux *= 1.1;
+			else
+				unclusteredFlux *= 0.9;
+			met = -(clusteredFlux + unclusteredFlux);
+		}
+
+		if (systVar == "LES_UP" || systVar == "LES_DOWN") {
+			TLorentzVector diff;
+			double sign = 1.0;
+			if (systVar == "LES_DOWN")
+				sign = -1.0;
+			for (unsigned i = 0; i < looseElectrons.size(); ++i) {
+				TLorentzVector tempEle = looseElectrons[i].lorentzVector();
+				if (looseElectrons[i].isEB())
+					diff += sign * 0.02 * tempEle;
+				else
+					diff += sign * 0.05 * tempEle;
+			}
+			for (unsigned i = 0; i < looseMuons.size(); ++i)
+				diff += sign * 0.01 * looseMuons[i].lorentzVector();
+
+			met -= diff;
+		}
+
 		pfmet = met.Pt();
 
 		double px = met.Px() + Zcand.Px();
@@ -528,62 +607,76 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if ( type == PHOT && nsoftjet == 0 )
 			continue;
 
-		//evPrint.setJetCollection(hardjets);
-
+//		if (nhardjet > 1) {
+//			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
+//					return a.lorentzVector().Eta() < b.lorentzVector().Eta();
+//				});
+//			for (unsigned j = 0; j < hardjets.size() - 1; ++j) {
+//				TLorentzVector jet1 = hardjets[j].lorentzVector();
+//				TLorentzVector jet2 = hardjets[j + 1].lorentzVector();
+//				double tmpDelEta = jet2.Eta() - jet1.Eta();
+//				TLorentzVector diJetSystem = jet1 + jet2;
+//				double tmpMass = diJetSystem.M();
+//				if (tmpDelEta > 4.0 && tmpMass > 500 && zeta > jet1.Eta() && jet2.Eta() > zeta) {
+//				if (tmpDelEta > 4.0 && tmpMass > 500 && l1eta > jet1.Eta() && l2eta > jet1.Eta() && jet2.Eta() > l1eta && jet2.Eta() > l2eta) {
+//					detajj = tmpDelEta;
+//					mjj = tmpMass;
+//				}
+//			}
+//		}
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
-					return a.lorentzVector().Eta() < b.lorentzVector().Eta();
-				});
-			for (unsigned j = 0; j < hardjets.size() - 1; ++j) {
-				TLorentzVector jet1 = hardjets[j].lorentzVector();
-				TLorentzVector jet2 = hardjets[j + 1].lorentzVector();
-				double tmpDelEta = jet2.Eta() - jet1.Eta();
-				TLorentzVector diJetSystem = jet1 + jet2;
-				double tmpMass = diJetSystem.M();
-				if (tmpDelEta > 4.0 && tmpMass > 500 && zeta > jet1.Eta() && jet2.Eta() > zeta) {
-					detajj = tmpDelEta;
-					mjj = tmpMass;
-				}
+					return a.lorentzVector().Pt() > b.lorentzVector().Pt();
+					});
+			TLorentzVector jet1 = hardjets[0].lorentzVector();
+			TLorentzVector jet2 = hardjets[1].lorentzVector();
+			const double maxEta = max( jet1.Eta(), jet2.Eta() );
+			const double minEta = min( jet1.Eta(), jet2.Eta() );
+			bool passCJV = true;
+			for (unsigned j = 2; j < hardjets.size(); ++j) {
+				double tmpEta = hardjets[j].lorentzVector().Eta();
+				if ( tmpEta > minEta && tmpEta < maxEta )
+					passCJV = false;
+			}
+			const double tmpDelEta = std::fabs(jet2.Eta() - jet1.Eta());
+			TLorentzVector diJetSystem = jet1 + jet2;
+			const double tmpMass = diJetSystem.M();
+//			if (evPrint.selectedEvent()) {
+//				cout << "*******************************" << endl;
+//				cout << passCJV << endl;
+//				cout << tmpDelEta << endl;
+//				cout << tmpMass << endl;
+//				cout << l1eta << endl;
+//				cout << l2eta << endl;
+//				cout << minEta << endl;
+//				cout << maxEta << endl;
+//			}
+			if (passCJV && tmpDelEta > 4.0 && tmpMass > 500 && l1eta > minEta && l2eta > minEta && maxEta > l1eta && maxEta > l2eta) {
+				detajj = tmpDelEta;
+				mjj = tmpMass;
 			}
 		}
 
 		category = evCategory(nhardjet, nsoftjet, detajj, mjj, type == PHOT);
 
 		minDeltaPhiJetMet = 10;
-		if (category == 1) {
-			for ( unsigned j = 0; j < softjets.size(); ++j ) {
-				TLorentzVector jet = softjets[j].lorentzVector();
-				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
-				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
-					minDeltaPhiJetMet = tempDelPhiJetMet;
-			}
-		} else {
+//		if (category == 1) {
+//			for ( unsigned j = 0; j < softjets.size(); ++j ) {
+//				TLorentzVector jet = softjets[j].lorentzVector();
+//				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
+//				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
+//					minDeltaPhiJetMet = tempDelPhiJetMet;
+//			}
+//		} else {
 			for ( unsigned j = 0; j < hardjets.size(); ++j ) {
 				TLorentzVector jet = hardjets[j].lorentzVector();
-				if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.4 )
+				if ( hardjets[j].btag > maxJetBTag && fabs(jet.Eta()) < 2.5 )
 					maxJetBTag = hardjets[j].btag;
 				double tempDelPhiJetMet = deltaPhi(met.Phi(), jet.Phi());
 				if ( tempDelPhiJetMet < minDeltaPhiJetMet )
 					minDeltaPhiJetMet = tempDelPhiJetMet;
 			}
-		}
-		/*
-		unsigned temprun = 160956;
-		unsigned templumi = 53;
-		unsigned tempevent = 27115287;
-		if (run == temprun && lumi == templumi  && event == tempevent) {
-			cout << "Found!" << endl;
-			cout << "Trigger: " << triggerAccept(ev, type) << endl;
-			cout << "Nlep20: " << leptons20.size() << endl;
-			cout << "Nlep: " << nmu + nele << endl;
-			cout << "Nsoftmu: " << nsoftmu << endl;
-			cout << "Same charge: " << (lepCharge[ leptons20[0] ] == lepCharge[ leptons20[1] ]) << endl;
-			cout << "zmass: " << zmass << endl;
-			cout << "zpt: " << zpt << endl;
-			cout << "maxJetBTag: " << maxJetBTag << endl;
-			cin.get();
-		}
-		*/
+//		}
 
 		nvtx = *nvtxP;
 
@@ -595,12 +688,12 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		TLorentzVector higgs;
 		higgs.SetPxPyPzE( *Hpx, *Hpy, *Hpz, *Hen );
 		hmass = higgs.M();
-		if (higgsW)
+		if (higgsW) {
 			hweight = higgsW->Eval(hmass);
-		else
+			if (higgsI)
+				hweight *= higgsI->Eval(hmass);
+		} else
 			hweight = 1;
-
-		//evPrint.print();
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
@@ -617,6 +710,36 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			continue;
 		if ( opt.checkBoolOption("BTAG_CUT") && ( maxJetBTag > 0.275) )
 			continue;
+		if ( opt.checkBoolOption("DPHI_CUT") && ( minDeltaPhiJetMet < 0.5) )
+			continue;
+
+
+		//evPrint.setJetCollection(hardjets);
+		//evPrint.setMET(met);
+		//evPrint.setMT(mt);
+		//string channelType;
+		//if (type == ELE)
+		//	channelType = "ee";
+		//else if (type == MU)
+		//	channelType = "mumu";
+		//else if (type == EMU)
+		//	channelType == "emu";
+		//if (category == 1)
+		//	channelType += "eq0jets";
+		//else if (category == 2)
+		//	channelType += "geq1jets";
+		//else
+		//	channelType += "vbf";
+		//evPrint.setChannel(channelType);
+		//unsigned bits = 0;
+		//bits |= (0x7);
+		//bits |= ((zmass > 76.0 && zmass < 106.0) << 3);
+		//bits |= ((zpt > 55) << 4);
+		//bits |= (((nele + nmu + nsoftmu) == 2) << 5);
+		//bits |= ((maxJetBTag < 0.275) << 6);
+		//bits |= ((minDeltaPhiJetMet > 0.5) << 7);
+		//evPrint.setBits(bits);
+		//evPrint.print();
 		
 		smallTree->Fill();
 	}
@@ -644,7 +767,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	delete out;
 }
 
-vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars ) {
+vector<Muon> buildMuonCollection( const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars) {
 	vector<Muon> muons;
 	const ArrayVariableContainer<int> * m_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(muonVars.m_idbits));
 	const ArrayVariableContainer<float> * m_nMatches = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(muonVars.m_nMatches));
@@ -933,7 +1056,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	return electrons;
 }
 
-vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, double ptMin, double etaMax) {
+vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
 
 	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
 	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
@@ -944,12 +1067,33 @@ vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, double
 	const ArrayVariableContainer<float> * j_genpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_genpt));
 	const ArrayVariableContainer<int> * j_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(jetVars.j_idbits));
 
+	if (mode == 1 || mode == 2) {
+		if (diff == 0)
+			throw string("ERROR - selectJetsCMG(): NULL pointer!");
+		diff->SetPxPyPzE(0, 0, 0, 0);
+	}
+
 	vector<Jet> jets;
 	for ( int i = 0; i < jn->getVal(); ++i ) {
 		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
-		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax )
-			jets.push_back( Jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i),
-						j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
+//		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
+		if ( true ) {
+			if (mode == 1 || mode == 2) {
+				jecUnc.setJetEta(jet.Eta());
+				jecUnc.setJetPt(jet.Pt());
+				double sF = fabs(jecUnc.getUncertainty(true));
+				if ( sF > 0.3 )
+					cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
+				if (mode == 1)
+					sF = 1 + sF;
+				else
+					sF = 1 - sF;
+				TLorentzVector newJet = sF * jet;
+				(*diff) += (newJet - jet);
+				jet = newJet;
+			}
+			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
+		}
 	}
 	return jets;
 }
@@ -974,17 +1118,20 @@ Jet smearedJet(const Jet & origJet, unsigned mode) {
 	double ptSF = 1.0;
 	double ptSF_err = 0.06;
 	if (eta < 0.5) {
-		ptSF = 1.066;
-		ptSF_err = sqrt(pow(0.007, 2) + pow(0.5 * (0.07 + 0.072), 2));
-	} else if (eta >= 0.5 && eta < 1.7) {
-		ptSF = 1.191;
-		ptSF_err = sqrt(pow(0.019, 2) + pow(0.5 * (0.06 + 0.062), 2));
-	} else if (eta >= 1.7 && eta < 2.3) {
+		ptSF = 1.052;
+		ptSF_err = sqrt(pow(0.012, 2) + pow(0.5 * (0.062 + 0.061), 2));
+	} else if (eta >= 0.5 && eta < 1.1) {
+		ptSF = 1.057;
+		ptSF_err = sqrt(pow(0.012, 2) + pow(0.5 * (0.056 + 0.055), 2));
+	} else if (eta >= 1.1 && eta < 1.7) {
 		ptSF = 1.096;
-		ptSF_err = sqrt(pow(0.030, 2) + pow(0.5 * (0.08 + 0.085),2));
+		ptSF_err = sqrt(pow(0.017, 2) + pow(0.5 * (0.063 + 0.062), 2));
+	} else if (eta >= 1.7 && eta < 2.3) {
+		ptSF = 1.134;
+		ptSF_err = sqrt(pow(0.035, 2) + pow(0.5 * (0.087 + 0.085),2));
 	} else if (eta >= 2.3 && eta < 5.0) {
-		ptSF = 1.166;
-		ptSF_err = sqrt(pow(0.050, 2) + pow(0.5 * (0.19 + 0.199), 2));
+		ptSF = 1.288;
+		ptSF_err = sqrt(pow(0.127, 2) + pow(0.5 * (0.155 + 0.153), 2));
 	}
 
 	if (mode == 1)
@@ -992,7 +1139,9 @@ Jet smearedJet(const Jet & origJet, unsigned mode) {
 	else if (mode == 2)
 		ptSF -= ptSF_err;
 	
-	ptSF = max(0., (origJet.genpt + gRandom->Gaus(ptSF, ptSF_err) * (pt - origJet.genpt))) / pt;  //deterministic version
+	//gRandom->SetSeed(123456);
+	//ptSF = max(0., (origJet.genpt + gRandom->Gaus(ptSF, ptSF_err) * (pt - origJet.genpt))) / pt;  //deterministic version
+	ptSF = max(0., (origJet.genpt + ptSF * (pt - origJet.genpt))) / pt;  //deterministic version
 	if (ptSF <= 0)
 		return origJet;
 

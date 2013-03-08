@@ -106,7 +106,7 @@ double ptFunc(double a1p, double b1, double c1, double d1, double b2, double c2,
 }
 
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample) {
-	bool vbf = (nhardjet == 2) && (delEta > 4.0) && (mjj > 500.0); 
+	bool vbf = (nhardjet >= 2) && (delEta > 4.0) && (mjj > 500.0); 
 	bool cat1 = (nhardjet == 0);
 	if (isPhotonSample)
 		cat1 = cat1 && (nsoftjet > 0);

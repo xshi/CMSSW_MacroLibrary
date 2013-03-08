@@ -19,16 +19,14 @@ class Photon;
 class PhotonVariables;
 class TLorentzVector;
 class RooWorkspace;
+class JetCorrectionUncertainty;
 
 void LeptonPreselectionCMG( PreselType type, RooWorkspace * massPeak = nullptr );
-Jet smearedJet(const Jet & origJet, unsigned mode);
-TLorentzVector smearJets(std::vector<Jet> & jets, unsigned mode = 0);
 std::vector<Muon> buildMuonCollection(const Event & ev, const LeptonVariables & leptonVars, const MuonVariables & muonVars);
 std::vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables & leptonVars, const ElectronVariables & electronVars);
-void selectElectronsCMG(const Event & ev, std::vector<unsigned> & electrons, double ptMin = 10);
-void selectMuonsCMG(const Event & ev, std::vector<unsigned> & muons, double ptMin = 10);
-void selectSoftMuonsCMG(const Event & ev, std::vector<unsigned> & softmuons, const std::vector<unsigned> & muons20);
-std::vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, double ptMin = 10, double etaMax = 5);
+std::vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff = 0, unsigned mode = 0, double ptMin = 10, double etaMax = 4.7);
+Jet smearedJet(const Jet & origJet, unsigned mode);
+TLorentzVector smearJets(std::vector<Jet> & jets, unsigned mode = 0);
 std::vector<Photon> selectPhotonsCMG(const Event & ev, const PhotonVariables & photonVars);
 	
 /*

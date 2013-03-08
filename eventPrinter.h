@@ -7,6 +7,7 @@
 #include<vector>
 #include<set>
 #include "preselectionCMG.h"
+#include <TLorentzVector.h>
 
 class Event;
 class Electron;
@@ -49,6 +50,10 @@ class EventPrinter {
 		EventPrinter(const EventPrinter &);
 		bool operator=(const EventPrinter &);
 		friend std::ostream & operator<<(std::ostream & os, const EventAddress & ev);
+		unsigned bits;
+		TLorentzVector met;
+		double mt;
+		std::string channel;
 	public :
 		EventPrinter(const Event & ev, PreselType t, const std::string & fN = "");
 		~EventPrinter();
@@ -77,6 +82,19 @@ class EventPrinter {
 		}
 		void readInEvents(const std::string & inFileName);
 		void printSelectedEvents() const;
+		void setMET(const TLorentzVector & met_) {
+			met = met_;
+		}
+		void setBits(unsigned bits_) {
+			bits = bits_;
+		}
+		void setMT(double mt_) {
+			mt = mt_;
+		}
+		void setChannel(const std::string & channel_) {
+			channel = channel_;
+		}
+		bool selectedEvent() const;
 };
 
 #endif // EVENTPRINTER_H
