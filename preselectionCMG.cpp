@@ -515,7 +515,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		else if (systVar == "JES_DOWN")
 			mode = 2;
 		TLorentzVector jecCorr;
-		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, jecUnc, &jecCorr, mode );
+		//vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, jecUnc, &jecCorr, mode );
+		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, &jecCorr, mode );
 		met -= jecCorr;
 
 		mode = 0;
@@ -1056,8 +1057,48 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	return electrons;
 }
 
-vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
+//vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
+//	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
+//	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
+//	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
+//	const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
+//	const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
+//	const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
+//	const ArrayVariableContainer<float> * j_genpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_genpt));
+//	const ArrayVariableContainer<int> * j_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(jetVars.j_idbits));
+//
+//	if (mode == 1 || mode == 2) {
+//		if (diff == 0)
+//			throw string("ERROR - selectJetsCMG(): NULL pointer!");
+//		diff->SetPxPyPzE(0, 0, 0, 0);
+//	}
+//
+//	vector<Jet> jets;
+//	for ( int i = 0; i < jn->getVal(); ++i ) {
+//		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
+////		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
+//		if ( true ) {
+//			if (mode == 1 || mode == 2) {
+//				jecUnc.setJetEta(jet.Eta());
+//				jecUnc.setJetPt(jet.Pt());
+//				double sF = fabs(jecUnc.getUncertainty(true));
+//				if ( sF > 0.3 )
+//					cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
+//				if (mode == 1)
+//					sF = 1 + sF;
+//				else
+//					sF = 1 - sF;
+//				TLorentzVector newJet = sF * jet;
+//				(*diff) += (newJet - jet);
+//				jet = newJet;
+//			}
+//			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
+//		}
+//	}
+//	return jets;
+//}
 
+vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
 	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
 	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
 	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
@@ -1078,20 +1119,6 @@ vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCor
 		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
 //		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
 		if ( true ) {
-			if (mode == 1 || mode == 2) {
-				jecUnc.setJetEta(jet.Eta());
-				jecUnc.setJetPt(jet.Pt());
-				double sF = fabs(jecUnc.getUncertainty(true));
-				if ( sF > 0.3 )
-					cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
-				if (mode == 1)
-					sF = 1 + sF;
-				else
-					sF = 1 - sF;
-				TLorentzVector newJet = sF * jet;
-				(*diff) += (newJet - jet);
-				jet = newJet;
-			}
 			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
 		}
 	}
