@@ -185,33 +185,33 @@ ostream & operator<<(ostream & os, const EventAdr & ev) {
 }
 
 double metCutValue(double mh) {
-	if (mh < 300)
+	if (mh <= 200)
+		return 80;
+	else if (mh <=250)
 		return 90;
-	else if (mh < 450)
+	else if (mh <= 350)
 		return 100;
-	else if (mh < 500)
-		return 120;
 	else
-		return 130;
+		return 110;
 }
 
 std::pair<double, double> mtCutValue(double mh) {
-	if (mh < 250)
-		return std::make_pair(150, 225);
-	else if (mh < 300)
-		return std::make_pair(175, 275);
-	else if (mh < 350)
-		return std::make_pair(275, 350);
-	else if (mh < 400)
-		return std::make_pair(325, 375);
-	else if (mh < 450)
+	if (mh <= 200)
+		return std::make_pair(180, 220);
+	else if (mh <= 250)
+		return std::make_pair(180, 270);
+	else if (mh <= 300)
+		return std::make_pair(280, 320);
+	else if (mh <= 350)
+		return std::make_pair(330, 370);
+	else if (mh <= 400)
 		return std::make_pair(350, 450);
-	else if (mh < 500)
+	else if (mh <= 450)
 		return std::make_pair(400, 500);
-	else if (mh < 550)
-		return std::make_pair(400, 700);
-	else if (mh < 600)
-		return std::make_pair(450, 700);
+	else if (mh <= 500)
+		return std::make_pair(400, 600);
+	else if (mh <= 550)
+		return std::make_pair(450, -1);
 	else
 		return std::make_pair(500, -1);
 }	

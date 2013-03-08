@@ -25,8 +25,8 @@
 #include "toolsCMG.h"
 #include <TRandom.h>
 #include <unordered_set>
-#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
 using std::cout;
 using std::cin;
@@ -58,7 +58,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	if (systVar == "NONE")
 		systVar.clear();
 
-	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
+//	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
 
 	string inputDir = opt.checkStringOption("INPUT_DIR");
 	string outputDir = opt.checkStringOption("OUTPUT_DIR");
