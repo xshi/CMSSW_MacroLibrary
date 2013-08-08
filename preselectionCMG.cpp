@@ -652,9 +652,16 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 //				cout << minEta << endl;
 //				cout << maxEta << endl;
 //			}
-			if (passCJV && tmpDelEta > 4.0 && tmpMass > 500 && l1eta > minEta && l2eta > minEta && maxEta > l1eta && maxEta > l2eta) {
-				detajj = tmpDelEta;
-				mjj = tmpMass;
+			if ( type == PHOT) {
+				if (passCJV && tmpDelEta > 4.0 && tmpMass > 500 && zeta > minEta && maxEta > zeta) {
+					detajj = tmpDelEta;
+					mjj = tmpMass;
+				}
+			} else {
+				if (passCJV && tmpDelEta > 4.0 && tmpMass > 500 && l1eta > minEta && l2eta > minEta && maxEta > l1eta && maxEta > l2eta) {
+					detajj = tmpDelEta;
+					mjj = tmpMass;
+				}
 			}
 		}
 

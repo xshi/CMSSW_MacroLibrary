@@ -10,47 +10,32 @@
 #include <RooAbsPdf.h>
 #include <RooRealProxy.h>
 #include <RooCategoryProxy.h>
-#include <RooAbsReal.h>
+#include <RooRealVar.h>
 #include <RooAbsCategory.h>
 
 class RooZPtPdf : public RooAbsPdf {
 	public:
 		RooZPtPdf() {} ; 
 		RooZPtPdf(const char *name, const char *title,
-				RooAbsReal & _zpt,
-				RooAbsReal & _a1,
-				RooAbsReal & _b1,
-				RooAbsReal & _c1,
-				RooAbsReal & _d1,
-				RooAbsReal & _b2,
-				RooAbsReal & _c2,
-				RooAbsReal & _b3,
-				RooAbsReal & _c3,
-				RooAbsReal & _a4,
-				RooAbsReal & _b4,
-				RooAbsReal & _c4,
-				RooAbsReal & _d4,
-				RooAbsReal & _merge
-				);
+			RooAbsReal & _zpt,
+			RooAbsReal & _p1,
+			RooAbsReal & _p2,
+			RooAbsReal & _p3,
+			RooAbsReal & _p4,
+			RooAbsReal & _p5);
 		RooZPtPdf(const RooZPtPdf & other, const char * name = 0) ;
 		inline virtual TObject* clone(const char* newname) const { return new RooZPtPdf(*this, newname); }
 		inline virtual ~RooZPtPdf() {}
 		Double_t evaluate() const;
+		Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName=0) const ;
+		Double_t analyticalIntegral(Int_t code, const char* rangeName=0) const ;
 	protected:
 		RooRealProxy zpt;
-		RooRealProxy a1;
-		RooRealProxy b1;
-		RooRealProxy c1;
-		RooRealProxy d1;
-		RooRealProxy b2;
-		RooRealProxy c2;
-		RooRealProxy b3;
-		RooRealProxy c3;
-		RooRealProxy a4;
-		RooRealProxy b4;
-		RooRealProxy c4;
-		RooRealProxy d4;
-		RooRealProxy merge;
+		RooRealProxy p1;
+		RooRealProxy p2;
+		RooRealProxy p3;
+		RooRealProxy p4;
+		RooRealProxy p5;
 	private:
 		ClassDef(RooZPtPdf,2);
 };

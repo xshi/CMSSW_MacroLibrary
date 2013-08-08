@@ -32,11 +32,11 @@ T max(T a, T b) {
 double calculateParA(double a1, double b1, double c1, double b2, double c2, double x);
 double calculateParD(double a1, double b1, double c1, double d1, double a2, double b2, double c2, double x);
 double myFunc(double a, double b, double c, double d, double x);
-double ptFunc(double a1, double b1, double c1, double d1, double b2, double c2,
-		double b3, double c3, double a4, double b4, double c4, double d4, double zpt, bool merge);
+double ptFunc(double zpt, int nParIn, const double * paramsIn);
+double ptFuncIntegral(double zpt, double a, double b);
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample);
 std::vector<std::string> tokenize(std::string text, char token);
-std::string encode(const std::string & str);
+std::string encode(const std::string & str, unsigned len = 128);
 
 class EventAdr;
 namespace std {
@@ -74,4 +74,21 @@ class EventAdr {
 std::ostream & operator<<(std::ostream & os, const EventAdr & ev);
 double metCutValue(double mh);
 std::pair<double, double> mtCutValue(double mh);
+double BW(double m, double G, double mH);
+
+class BreitWignerNR {
+	private:
+		double c_;
+		double br_;
+		double mh_;
+		double n_;
+		double g_;
+		void gamma();
+	public:
+		BreitWignerNR() : c_(-1.0), br_(-1.0), mh_(-1.0), n_(-1.0), g_(-1.0) {}
+		BreitWignerNR(double C, double BR, double MH, double N) : c_(C), br_(BR), mh_(MH), n_(N) {
+			gamma();
+		}
+		double operator()(double m) const;
+};
 #endif // EVENT_H

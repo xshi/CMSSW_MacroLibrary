@@ -27,8 +27,9 @@ Expression Parser::parse( const string & expression, set<string> & parameters) {
 			return parseSingleUnit(exprElements[0], parameters);
 		else
 			return parse(exprElements[0], parameters);
+	} else if (exprElements.size() == 0) {
+		return parse("1", parameters); 
 	} else {
-		//throw string("ERROR: Can't parse expression : " + expression + "!");
 		cout << string("ERROR: Can't parse expression : " + expression + "!") << endl;
 		return parse("1", parameters);
 	}
