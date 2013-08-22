@@ -25,8 +25,8 @@
 #include "toolsCMG.h"
 #include <TRandom.h>
 #include <unordered_set>
-//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
-//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 
 using std::cout;
 using std::cin;
@@ -58,7 +58,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	if (systVar == "NONE")
 		systVar.clear();
 
-//	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
+	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
 
 	string inputDir = opt.checkStringOption("INPUT_DIR");
 	string outputDir = opt.checkStringOption("OUTPUT_DIR");
@@ -99,9 +99,9 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	TFile * file = new TFile( inputFile.c_str() );
 	if (!file->IsOpen())
 		throw string("ERROR: Can't open the file: " + inputFile + "!");
-	TDirectory * dir = (TDirectory *) file->Get("evAnalyzer");
-	TH1D * nEvHisto = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("cutflow");
-	TH1D * puHisto = (TH1D *) ((TDirectory *) dir->Get("h2zz"))->Get("pileup");
+	TDirectory * dir = (TDirectory *) file->Get("dataAnalyzer");
+	TH1D * nEvHisto = (TH1D *) dir->Get("cutflow");
+	TH1D * puHisto = (TH1D *) dir->Get("pileup");
 	TTree * tree = ( TTree * ) dir->Get( "data" );
 	Event ev( tree );
 	LeptonVariables leptonVars( ev );
@@ -126,11 +126,13 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const float * Hpz = ev.getSVA<float>("h_pz");
 	const float * Hen = ev.getSVA<float>("h_en");
 	
-	//string eventFileName;
-	//if (type == ELE)
-	//	eventFileName = "events_ele.txt";
-	//else if (type == MU)
-	//	eventFileName = "events_mu.txt";
+	string eventFileName;
+	if (type == ELE)
+		eventFileName = "events_ele.txt";
+	else if (type == MU)
+		eventFileName = "events_mu.txt";
+	else if (type == EMU)
+		eventFileName = "events_emu.txt";
 	//EventPrinter evPrint(ev, type, eventFileName);
 	//evPrint.readInEvents("diff.txt");
 	//evPrint.printElectrons();
@@ -340,6 +342,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		vector<Electron> selectedElectrons;
 		bool selectedFirst = false;
 		bool selectedSecond = false;
+		bool selectedFirstElectron = false;
+		bool selectedFirstMuon = false;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
 			TLorentzVector lv = electrons[j].lorentzVector();
 			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack()
@@ -357,6 +361,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 					selectedFirst = true;
 				if (type == ELE && j == 1)
 					selectedSecond = true;
+				if (type == EMU && j == 0)
+					selectedFirstElectron = true;
 			}
 		}
 
@@ -379,6 +385,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 					selectedFirst = true;
 				if (type == MU && j == 1)
 					selectedSecond = true;
+				if (type == EMU && j == 0)
+					selectedFirstMuon = true;
 			}
 		}
 
@@ -407,6 +415,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		}
 
 		if ((type == ELE || type == MU) && !(selectedFirst && selectedSecond))
+			continue;
+		if ((type == EMU) && !(selectedFirstElectron && selectedFirstMuon))
 			continue;
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
@@ -515,8 +525,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		else if (systVar == "JES_DOWN")
 			mode = 2;
 		TLorentzVector jecCorr;
-		//vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, jecUnc, &jecCorr, mode );
-		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, &jecCorr, mode );
+		vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, jecUnc, &jecCorr, mode );
+		//vector<Jet> jetsAll = selectJetsCMG( ev, jetVars, &jecCorr, mode );
 		met -= jecCorr;
 
 		mode = 0;
@@ -731,7 +741,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		//else if (type == MU)
 		//	channelType = "mumu";
 		//else if (type == EMU)
-		//	channelType == "emu";
+		//	channelType = "emu";
 		//if (category == 1)
 		//	channelType += "eq0jets";
 		//else if (category == 2)
@@ -1064,48 +1074,7 @@ vector<Electron> buildElectronCollection(const Event & ev, const LeptonVariables
 	return electrons;
 }
 
-//vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
-//	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
-//	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
-//	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
-//	const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
-//	const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
-//	const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
-//	const ArrayVariableContainer<float> * j_genpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_genpt));
-//	const ArrayVariableContainer<int> * j_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(jetVars.j_idbits));
-//
-//	if (mode == 1 || mode == 2) {
-//		if (diff == 0)
-//			throw string("ERROR - selectJetsCMG(): NULL pointer!");
-//		diff->SetPxPyPzE(0, 0, 0, 0);
-//	}
-//
-//	vector<Jet> jets;
-//	for ( int i = 0; i < jn->getVal(); ++i ) {
-//		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
-////		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
-//		if ( true ) {
-//			if (mode == 1 || mode == 2) {
-//				jecUnc.setJetEta(jet.Eta());
-//				jecUnc.setJetPt(jet.Pt());
-//				double sF = fabs(jecUnc.getUncertainty(true));
-//				if ( sF > 0.3 )
-//					cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
-//				if (mode == 1)
-//					sF = 1 + sF;
-//				else
-//					sF = 1 - sF;
-//				TLorentzVector newJet = sF * jet;
-//				(*diff) += (newJet - jet);
-//				jet = newJet;
-//			}
-//			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
-//		}
-//	}
-//	return jets;
-//}
-
-vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
+vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
 	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
 	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
 	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
@@ -1126,11 +1095,52 @@ vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, TLoren
 		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
 //		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
 		if ( true ) {
+			if (mode == 1 || mode == 2) {
+				jecUnc.setJetEta(jet.Eta());
+				jecUnc.setJetPt(jet.Pt());
+				double sF = fabs(jecUnc.getUncertainty(true));
+				if ( sF > 0.3 )
+					cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
+				if (mode == 1)
+					sF = 1 + sF;
+				else
+					sF = 1 - sF;
+				TLorentzVector newJet = sF * jet;
+				(*diff) += (newJet - jet);
+				jet = newJet;
+			}
 			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
 		}
 	}
 	return jets;
 }
+
+//vector<Jet> selectJetsCMG(const Event & ev, const JetVariables & jetVars, TLorentzVector * diff, unsigned mode, double ptMin, double etaMax) {
+//	const SingleVariableContainer<int> * jn = dynamic_cast<const SingleVariableContainer<int> *>(ev.getVariable(jetVars.jn));
+//	const ArrayVariableContainer<float> * j_px = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_px));
+//	const ArrayVariableContainer<float> * j_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_py));
+//	const ArrayVariableContainer<float> * j_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_pz));
+//	const ArrayVariableContainer<float> * j_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_en));
+//	const ArrayVariableContainer<float> * j_btag = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_btag));
+//	const ArrayVariableContainer<float> * j_genpt = dynamic_cast<const ArrayVariableContainer<float> *>(ev.getVariable(jetVars.j_genpt));
+//	const ArrayVariableContainer<int> * j_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.getVariable(jetVars.j_idbits));
+//
+//	if (mode == 1 || mode == 2) {
+//		if (diff == 0)
+//			throw string("ERROR - selectJetsCMG(): NULL pointer!");
+//		diff->SetPxPyPzE(0, 0, 0, 0);
+//	}
+//
+//	vector<Jet> jets;
+//	for ( int i = 0; i < jn->getVal(); ++i ) {
+//		TLorentzVector jet(j_px->getVal(i), j_py->getVal(i), j_pz->getVal(i), j_en->getVal(i));
+////		if ( jet.Pt() > ptMin && fabs(jet.Eta()) < etaMax ) {
+//		if ( true ) {
+//			jets.push_back( Jet(jet.Px(), jet.Py(), jet.Pz(), jet.E(), j_btag->getVal(i), j_genpt->getVal(i), j_idbits->getVal(i)) );
+//		}
+//	}
+//	return jets;
+//}
 
 TLorentzVector smearJets(vector<Jet> & jets, unsigned mode) {
 	TLorentzVector jetDiff;

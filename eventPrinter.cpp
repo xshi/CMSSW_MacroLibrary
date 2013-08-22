@@ -46,7 +46,7 @@ EventPrinter::~EventPrinter() {
 }
 
 void EventPrinter::printHeader() const {
-	(*output) << setw(10) << "RUN" << setw(10) << "LUMI" << setw(10) << "EVENT";
+	(*output) << setw(15) << "RUN" << setw(15) << "LUMI" << setw(15) << "EVENT";
 	(*output) << setw(10) << "BITS";
 	(*output) << setw(10) << "nJets";
 	(*output) << setw(10) << "MET";
@@ -124,8 +124,8 @@ void EventPrinter::print() const {
 	output->precision(4);
 	(*output) << std::fixed;
 	int lineLength = 0;
-	(*output) << setw(10) << (*run) << setw(10) << (*lumi) << setw(10) << (*event);
-	lineLength += 30;
+	(*output) << setw(15) << (*run) << setw(15) << (*lumi) << setw(15) << (*event);
+	lineLength += 45;
 	(*output) << setw(10) << bits << setw(10) << jets->size() << setw(10) << met.Pt() << setw(10) << mt << setw(15) << channel;
 	lineLength += 55;
 	for (unsigned i = 0; i < floatVars.size(); ++i) {
