@@ -14,7 +14,6 @@ OBJS = \
 	   preselectionCMG.o \
 	   toolbox.o \
 	   toolbox.o \
-	   toolsCMG.o \
 	   triggerinfo.o \
 	   variableGetter.o \
 	   RooZPtPdf.o \
@@ -37,15 +36,16 @@ HEADERS = \
 		  photonPrescale.h \
 		  preselectionCMG.h \
 		  toolbox.h \
-		  toolsCMG.h \
 		  triggerinfo.h \
 		  variableGetter.h \
 		  RooZPtPdf.h \
 		  RooFermi.h \
 		  RooCMSShape.h
 CC = g++
-CFLAGS = -ansi -std=c++0x -Wall -O3 `root-config --cflags` -I$(ROOFITSYS)/include
-LFLAGS = `root-config --libs` -O3 -ansi -std=c++0x -Wall
+#CFLAGS = -ansi -std=c++0x -Wall -O3 `root-config --cflags` -I$(ROOFITSYS)/include
+#LFLAGS = `root-config --libs` -O3 -ansi -std=c++0x -Wall
+CFLAGS = -ansi -std=c++0x -Wall -g `root-config --cflags` -I$(ROOFITSYS)/include
+LFLAGS = `root-config --libs` -g -ansi -std=c++0x -Wall
 NAME = libHZZ2l2nu.a
 
 $(NAME) : $(OBJS)
@@ -98,9 +98,6 @@ photon.o : photon.cpp $(HEADERS)
 
 photonPrescale.o : photonPrescale.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c photonPrescale.cpp
-
-toolsCMG.o : toolsCMG.cpp $(HEADERS)
-	$(CC) $(CFLAGS) -c toolsCMG.cpp
 
 RooZPtPdf.o : RooZPtPdf.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c RooZPtPdf.cpp

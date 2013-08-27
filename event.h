@@ -6,7 +6,7 @@
 // Standard Libraries
 #include <string>
 #include <utility>
-#include <vector>
+#include <unordered_map>
 #include <map>
 #include <sstream>
 #include <iostream>
@@ -103,13 +103,9 @@ template <typename T> class VectorVariableContainer : public VariableContainer {
 		}
 };
 
-class TriggerInfo;
-
 class Event {
 	private:
-		std::vector<VariableContainer *> variables;
-		
-		std::vector<std::pair<std::string, TriggerInfo **> > Triggers;
+		std::unordered_map<std::string, VariableContainer *> variables;
 
 		Event(const Event &);
 		Event & operator=(const Event &);
@@ -117,8 +113,6 @@ class Event {
 		Event(TTree *tree);
 		~Event();
 		VariableContainer * findVariable(const std::string & name) const;
-		unsigned findVariableIndex(const std::string & name) const;
-		const VariableContainer * getVariable(unsigned i) const;
 
 		template <typename T> T getSingleVariableValue(const std::string & name) const {
 			VariableContainer * tempPtr = findVariable(name);
@@ -209,8 +203,6 @@ class Event {
 		template <typename T> inline std::vector<T> * getVVA(const std::string & name) const {
 			return getVectorVariableAddress<T>(name);
 		}
-		
-		const TriggerInfo * getTriggerInfo(const std::string & name) const;
 };
 
 #endif // EVENT_H

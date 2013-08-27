@@ -167,28 +167,15 @@ void EventPrinter::print() const {
 			if (i < electrons->size() ) {
 				(*output) << setw(10) << (*electrons)[i].lorentzVector().Pt();
 				(*output) << setw(10) << (*electrons)[i].lorentzVector().Eta();
-				(*output) << setw(10) << (*electrons)[i].en;
-				(*output) << setw(10) << (*electrons)[i].px;
-				(*output) << setw(10) << (*electrons)[i].py;
-				(*output) << setw(10) << (*electrons)[i].pz;
-				(*output) << setw(10) << (*electrons)[i].sceta;
-//				(*output) << setw(10) << (*electrons)[i].isInCrack();
+				(*output) << setw(10) << (*electrons)[i].getVarF("ln_en");
+				(*output) << setw(10) << (*electrons)[i].getVarF("ln_px");
+				(*output) << setw(10) << (*electrons)[i].getVarF("ln_py");
+				(*output) << setw(10) << (*electrons)[i].getVarF("ln_pz");
+				(*output) << setw(10) << (*electrons)[i].getVarF("ln_sceta");
 				(*output) << setw(10) << (*electrons)[i].passesMediumID();
 				(*output) << setw(10) << (*electrons)[i].passesLooseID();
 				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[1], false);
-//				(*output) << setw(10) << (*electrons)[i].gIso;
-//				(*output) << setw(10) << (*electrons)[i].chIso;
-//				(*output) << setw(10) << (*electrons)[i].nhIso;
 				(*output) << setw(10) << (*electrons)[i].isEB();
-//				(*output) << setw(10) << (*electrons)[i].detain;
-//				(*output) << setw(10) << (*electrons)[i].dphiin;
-//				(*output) << setw(10) << (*electrons)[i].sihih;
-//				(*output) << setw(10) << (*electrons)[i].hoe;
-//				(*output) << setw(10) << (*electrons)[i].d0;
-//				(*output) << setw(10) << (*electrons)[i].dZ;
-//				(*output) << setw(10) << (*electrons)[i].ooemoop;
-//				(*output) << setw(10) << (((*electrons)[i].idbits >> 5) & 0x1);
-//				(*output) << setw(10) << (*electrons)[i].trkLostInnerHits;
 			} else
 				(*output) << setw(electronsLength) << "";
 		}
@@ -197,8 +184,8 @@ void EventPrinter::print() const {
 				(*output) << setw(10) << (*muons)[i].lorentzVector().Pt();
 				(*output) << setw(10) << (*muons)[i].lorentzVector().Eta();
 				(*output) << setw(10) << (*muons)[i].lorentzVector().Phi();
-				(*output) << setw(10) << (*muons)[i].nMatches;
-				(*output) << setw(10) << (*muons)[i].innerTrackChi2;
+				(*output) << setw(10) << (*muons)[i].getVarF("ln_nMatches");
+				(*output) << setw(10) << (*muons)[i].getVarF("ln_innerTrackChi2");
 				(*output) << setw(10) << (*muons)[i].isTightMuon();
 				(*output) << setw(10) << (*muons)[i].isLooseMuon();
 				(*output) << setw(10) << (*muons)[i].isSoftMuon();
@@ -234,7 +221,7 @@ void EventPrinter::print() const {
 				else
 					(*output) << setw(10) << "";
 				(*output) << setw(10) << (*jets)[i].lorentzVector().Phi();
-				(*output) << setw(10) << (*jets)[i].btag;
+				(*output) << setw(10) << (*jets)[i].getVarF("jn_jp");
 				(*output) << setw(10) << deltaPhi((*jets)[i].lorentzVector().Phi(), met.Phi());
 			}
 		}

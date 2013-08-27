@@ -1,108 +1,46 @@
 #include "electron.h"
 #include <cmath>
 #include "TLorentzVector.h"
+#include <string>
 
+using std::string;
 using std::max;
 
-Electron::Electron( float px_, float py_, float pz_, float en_, float ptErr_, float ecalIso_, float hcalIso_,
-		float trkIso_, float gIso_, float chIso_, float puchIso_, float nhIso_, int id_, int genid_,
-		float ensf_, float ensferr_, float d0_, float dZ_, float ip3d_, float trkpt_, float trketa_, float trkphi_,
-		float trkchi2_, float trkValidPixelHits_, float trkValidTrackerHits_, float trkLostInnerHits_,
-		int idbits_, float hoe_, float dphiin_, float detain_, float sihih_, float sipip_, float r9_,
-		float sce_, float sceta_, float scphi_, float e2x5max_, float e1x5_, float e5x5_, float h2te_,
-		float h2tebc_, float ooemoop_, float fbrem_, float eopin_, float dEtaCalo_, float kfchi2_,
-		float kfhits_, float etawidth_, float phiwidth_, float e1x5e5x5_, float preShowerOverRaw_,
-		float eopout_ ) :
-	Lepton( px_, py_, pz_, en_, ptErr_, ecalIso_, hcalIso_, trkIso_, gIso_, chIso_, puchIso_, nhIso_,
-			id_, genid_, ensf_, ensferr_, d0_, dZ_, ip3d_, trkpt_, trketa_, trkphi_, trkchi2_,
-			trkValidPixelHits_, trkValidTrackerHits_, trkLostInnerHits_ ),
-		idbits(idbits_),
-		hoe(hoe_),
-		dphiin(dphiin_),
-		detain(detain_),
-		sihih(sihih_),
-		sipip(sipip_),
-		r9(r9_),
-		sce(sce_),
-		sceta(sceta_),
-		scphi(scphi_),
-		e2x5max(e2x5max_),
-		e1x5(e1x5_),
-		e5x5(e5x5_),
-		h2te(h2te_),
-		h2tebc(h2tebc_),
-		ooemoop(ooemoop_),
-		fbrem(fbrem_),
-		eopin(eopin_),
-		dEtaCalo(dEtaCalo_),
-		kfchi2(kfchi2_),
-		kfhits(kfhits_),
-		etawidth(etawidth_),
-		phiwidth(phiwidth_),
-		e1x5e5x5(e1x5e5x5_),
-		preShowerOverRaw(preShowerOverRaw_),
-		eopout(eopout_) {
-}
-
 bool Electron::isEB() const {
-	return fabs(sceta) < 1.479;
+	return fabs(getVarF("egn_sceta")) < 1.479;
 }
 
 bool Electron::isEE() const {
-	return fabs(sceta) > 1.479 && fabs(sceta) < 2.5;
+	return fabs(getVarF("egn_sceta")) > 1.479 && fabs(getVarF("egn_sceta")) < 2.5;
 }
 
 bool Electron::isInCrack() const {
-	double abseta = fabs(sceta);
+	double abseta = fabs(getVarF("egn_sceta"));
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
-//double Electron::effAreaMC() const {
-//	double abseta = fabs(sceta);
-//	if (abseta < 1.0)
-//		return 0.18;
-//	else if (abseta < 1.479)
-//		return 0.21;
-//	else if (abseta < 2.0)
-//		return 0.16;
-//	else if (abseta < 2.2)
-//		return 0.22;
-//	else if (abseta < 2.3)
-//		return 0.27;
-//	else if (abseta < 2.4)
-//		return 0.30;
-//	else
-//		return 0.41;
-//}
-
 double Electron::effAreaDATA() const {
-	//double abseta = fabs(lorentzVector().Eta());
-	double abseta = fabs(sceta);
+	double abseta = fabs(getVarF("egn_sceta"));
 	if (abseta < 1.0)
-		return 0.21;
+		return 0.13;
 	else if (abseta < 1.479)
-		return 0.21;
-	else if (abseta < 2.0)
-		return 0.11;
-	else if (abseta < 2.2)
 		return 0.14;
+	else if (abseta < 2.0)
+		return 0.07;
+	else if (abseta < 2.2)
+		return 0.09;
 	else if (abseta < 2.3)
-		return 0.18;
+		return 0.11;
 	else if (abseta < 2.4)
-		return 0.19;
+		return 0.11;
 	else
-		return 0.26;
+		return 0.14;
 }
 
 double Electron::pfIsolation(double rho, bool isData) const {
 	double rhoPr = max(rho, 0.0);
-//	double eta = fabs(sceta);
-	double nIso;
-//	if (isData)
-		nIso = max(nhIso + gIso - rhoPr * effAreaDATA(), 0.0);
-//	else
-//		nIso = max(nhIso + gIso - rhoPr * effAreaMC(eta), 0.0);
-	return (nIso + chIso) / lorentzVector().Pt();
+	double nIso = max(getVarF("ln_nhIso03") + getVarF("ln_gIso03") - rhoPr * effAreaDATA(), 0.0);
+	return (nIso + getVarF("ln_chIso03")) / lorentzVector().Pt();
 }
 
 bool Electron::isPFIsolatedVeto(double rho, bool isData) const {
@@ -153,84 +91,105 @@ bool Electron::isPFIsolatedTight(double rho, bool isData) const {
 }
 
 bool Electron::passesVetoID() const {
+	bool passes = false;
 	if (isEB()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.8 && sihih < 0.01 && hoe < 0.15 && fabs(d0) < 0.04 && fabs(dZ) < 0.2)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.007 &&
+				fabs(getVarF("egn_dphiin")) < 0.8 &&
+				getVarF("egn_sihih") < 0.01 &&
+				getVarF("egn_hoe") < 0.15 &&
+				fabs(getVarF("ln_d0")) < 0.04 &&
+				fabs(getVarF("ln_dZ")) < 0.2
+			)
+			passes = true;
 	} else {
-		if (fabs(detain) < 0.01 && fabs(dphiin) < 0.7 && sihih < 0.03 && fabs(d0) < 0.04 && fabs(dZ) < 0.4)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.01 &&
+				fabs(getVarF("egn_dphiin")) < 0.7 &&
+				getVarF("egn_sihih") < 0.03 &&
+				fabs(getVarF("ln_d0")) < 0.04 &&
+				fabs(getVarF("ln_dZ")) < 0.2
+			)
+			passes = true;
 	}
-	return false;
+	bool idBit = getVarI("ln_idbits") & (0x1 << 3);
+	if (passes != idBit) {
+		print();
+		throw string("ERROR Electron::passesVetoID(): ID bit doesn't not match!");
+	}
+	return passes;
 }
 
 bool Electron::passesLooseID() const {
+	bool passes = false;
 	if (isEB()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.2
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.007 &&
+				fabs(getVarF("egn_dphiin")) < 0.15 &&
+				getVarF("egn_sihih") < 0.01 &&
+				getVarF("egn_hoe") < 0.12 &&
+				fabs(getVarF("ln_d0")) < 0.02 &&
+				fabs(getVarF("ln_dZ")) < 0.2 &&
+				fabs( getVarF("egn_ooemoop") ) < 0.05 &&
+				!getVarB("egn_isConv") &&
+				getVarF("ln_trkLostInnerHits") <= 1
+			)
+			passes = true;
 	} else {
-		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.2
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.009 &&
+				fabs(getVarF("egn_dphiin")) < 0.10 &&
+				getVarF("egn_sihih") < 0.03 &&
+				getVarF("egn_hoe") < 0.10 &&
+				fabs(getVarF("ln_d0")) < 0.02 &&
+				fabs(getVarF("ln_dZ")) < 0.2 &&
+				fabs( getVarF("egn_ooemoop") ) < 0.05 &&
+				!getVarB("egn_isConv") &&
+				getVarF("ln_trkLostInnerHits") <= 1
+			)
+			passes = true;
 	}
-	return false;
+	bool idBit = getVarI("ln_idbits") & (0x1 << 4);
+	if (passes != idBit) {
+		print();
+		throw string("ERROR Electron::passesLooseID(): ID bit doesn't not match!");
+	}
+	return passes;
 }
 
 bool Electron::passesMediumID() const {
+	bool passes = false;
 	if (isEB()) {
-		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.06 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.004 &&
+				fabs(getVarF("egn_dphiin")) < 0.06 &&
+				getVarF("egn_sihih") < 0.01 &&
+				getVarF("egn_hoe") < 0.12 &&
+				fabs(getVarF("ln_d0")) < 0.02 &&
+				fabs(getVarF("ln_dZ")) < 0.1 &&
+				fabs( getVarF("egn_ooemoop") ) < 0.05 &&
+				!getVarB("egn_isConv") &&
+				getVarF("ln_trkLostInnerHits") <= 1
+			)
+			passes = true;
 	} else {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.03 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 1)
-			return true;
+		if (
+				fabs(getVarF("egn_detain")) < 0.007 &&
+				fabs(getVarF("egn_dphiin")) < 0.03 &&
+				getVarF("egn_sihih") < 0.03 &&
+				getVarF("egn_hoe") < 0.10 &&
+				fabs(getVarF("ln_d0")) < 0.02 &&
+				fabs(getVarF("ln_dZ")) < 0.1 &&
+				fabs( getVarF("egn_ooemoop") ) < 0.05 &&
+				!getVarB("egn_isConv") &&
+				getVarF("ln_trkLostInnerHits") <= 1
+			)
+			passes = true;
 	}
-	return false;
-}
-
-bool Electron::passesTightID() const {
-	if (isEB()) {
-		if (fabs(detain) < 0.004 && fabs(dphiin) < 0.03 && sihih < 0.01 && hoe < 0.12 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
-			return true;
-	} else {
-		if (fabs(detain) < 0.005 && fabs(dphiin) < 0.02 && sihih < 0.03 && hoe < 0.10 && fabs(d0) < 0.02 && fabs(dZ) < 0.1
-				&& fabs( ooemoop ) < 0.05 && ((idbits >> 5) & 0x1) && trkLostInnerHits <= 0)
-			return true;
+	bool idBit = getVarI("ln_idbits") & (0x1 << 5);
+	if (passes != idBit) {
+		print();
+		throw string("ERROR Electron::passesMediumID(): ID bit doesn't not match!");
 	}
-	return false;
-}
-
-bool Electron::passesTightTriggerID() const {
-	double pt = lorentzVector().Pt();
-	if (isEB()) {
-		if (fabs(detain) < 0.007 && fabs(dphiin) < 0.15 && sihih < 0.01 && hoe < 0.12
-				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
-			return true;
-	} else {
-		if (fabs(detain) < 0.009 && fabs(dphiin) < 0.10 && sihih < 0.03 && hoe < 0.10
-				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
-			return true;
-	}
-	return false;
-}
-
-bool Electron::passes2011ID() const {
-	return (0x1 << 0) & idbits;
-}
-
-bool Electron::passesMvaTriggerPreselection() const {
-	double pt = lorentzVector().Pt();
-	if (isEB()) {
-		if (sihih < 0.014 && hoe < 0.15 && trkLostInnerHits == 0
-				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
-			return true;
-	} else {
-		if (sihih < 0.035 && hoe < 0.10 && trkLostInnerHits == 0
-				&& (ecalIso / pt) < 0.2 && (hcalIso / pt) < 0.2 && (trkIso / pt) < 0.2 )
-			return true;
-	}
-	return false;
-
+	return passes;
 }

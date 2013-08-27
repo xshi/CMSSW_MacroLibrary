@@ -36,5 +36,6 @@ unsigned PhotonPrescale::getIndex(double pt) {
 
 		}
 	}
+	std::cout << pt << std::endl;
 	throw string("ERROR: Can't find proper index!");
 }

@@ -9,68 +9,28 @@ using std::cout;
 using std::endl;
 using std::cin;
 
-Photon::Photon( float px_, float py_, float pz_, float en_, float iso1_, float iso2_, float iso3_, float sihih_, float sipip_,
-			 float r9_, float hoe_, float htoe_, float corren_, float correnerr_, int idbits_ ) :
-	px(px_),
-	py(py_),
-	pz(pz_),
-	en(en_),
-	iso1(iso1_),
-	iso2(iso2_),
-	iso3(iso3_),
-	sihih(sihih_),
-	sipip(sipip_),
-	r9(r9_),
-	hoe(hoe_),
-	htoe(htoe_),
-	corren(corren_),
-	correnerr(correnerr_),
-	idbits(idbits_) {
-}
-
 TLorentzVector Photon::lorentzVector() const {
-	return TLorentzVector(px, py, pz, en);
-}
-
-double Photon::eta() const {
-	return lorentzVector().Eta();
+	return TLorentzVector(getVarF("gn_px"), getVarF("gn_py"), getVarF("gn_pz"), getVarF("gn_en"));
 }
 
 bool Photon::isEB() const {
-	return fabs(eta()) < 1.479;
+	return fabs(getVarF("egn_sceta")) < 1.479;
 }
 
 bool Photon::isEE() const {
-	return fabs(eta()) > 1.479 && fabs(eta()) < 2.5;
+	return fabs(getVarF("egn_sceta")) > 1.479 && fabs(getVarF("egn_sceta")) < 2.5;
 }
 
 bool Photon::isInCrack() const {
-	double abseta = fabs(eta());
+	double abseta = fabs(getVarF("egn_sceta"));
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
 bool Photon::isSelected(double rho) {
 	TLorentzVector vec = lorentzVector();
-	bool noPixSeed = (idbits & (0x1 << 0));
-	if ( vec.Pt() > 30 && fabs(vec.Eta()) < 2.5 && !isInCrack() && noPixSeed && hoe < 0.05 ) {
-		if (isEB()) {
-			if ( sihih < 0.011 &&
-					iso1 < (2.0 + 0.001 * vec.Pt() + 0.0167 * rho) &&
-					iso2 < (4.2 + 0.006 * vec.Pt() + 0.183 * rho) &&
-					iso3 < (2.2 + 0.0025 * vec.Pt() + 0.062 * rho) &&
-					// spike cleaning
-					sihih > 0.001 &&
-					sipip > 0.001
-			   )
-				return true;
-		} else {
-			if ( sihih < 0.03 &&
-					iso1 < (2.0 + 0.001 * vec.Pt() + 0.032 * rho) &&
-					iso2 < (4.2 + 0.006 * vec.Pt() + 0.090 * rho) &&
-					iso3 < (2.2 + 0.0025 * vec.Pt() + 0.180 * rho)
-			   )
-				return true;
-		}
+	bool isMedium = (getVarI("gn_idbits") & (0x1 << 1));
+	if ( vec.Pt() > 30 && isEB() && !isInCrack() && isMedium ) {
+		return true;
 	}
 	return false;
 

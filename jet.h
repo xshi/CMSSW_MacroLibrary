@@ -1,20 +1,13 @@
 #ifndef JET_H
 #define JET_H
 
+#include "lepton.h"
+
 class TLorentzVector;
 
-class Jet {
+class Jet : public Lepton {
 	public :
-		float px;
-		float py;
-		float pz;
-		float en;
-		float btag;
-		float genpt;
-		int idbits;
-
-		Jet( float px_, float py_, float pz_, float en_, float btag_, float ptgen_, int idbits_ );		
-		TLorentzVector lorentzVector() const;
+		virtual TLorentzVector lorentzVector() const;
 		bool passesPUID() const;
 };
 
