@@ -33,11 +33,12 @@ Event::Event( TTree *tree ) {
 			exit( EXIT_FAILURE );
 		}
 
-		int leafLength = leafPointer->GetLen();
 		TLeaf * leafCount = leafPointer->GetLeafCount();
-		if (leafCount && leafCount->GetMaximum() > leafLength) {
+		int leafLength;
+		if (leafCount)
 			leafLength = leafCount->GetMaximum();
-		}
+		else
+			leafLength = leafPointer->GetLen();
 		bool array = (leafCount || leafLength > 1);
 
 		if ( leafPointer->GetBranch()->GetClassName() != string("")

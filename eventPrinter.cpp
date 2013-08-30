@@ -174,7 +174,7 @@ void EventPrinter::print() const {
 				(*output) << setw(10) << (*electrons)[i].getVarF("ln_sceta");
 				(*output) << setw(10) << (*electrons)[i].passesMediumID();
 				(*output) << setw(10) << (*electrons)[i].passesLooseID();
-				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[1], false);
+				(*output) << setw(10) << (*electrons)[i].pfIsolation(*floatVars[1]);
 				(*output) << setw(10) << (*electrons)[i].isEB();
 			} else
 				(*output) << setw(electronsLength) << "";

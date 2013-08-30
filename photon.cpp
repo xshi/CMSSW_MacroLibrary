@@ -3,7 +3,9 @@
 #include "jet.h"
 #include "TLorentzVector.h"
 #include <iostream>
+#include <string>
 
+using std::string;
 using std::vector;
 using std::cout;
 using std::endl;
@@ -26,78 +28,118 @@ bool Photon::isInCrack() const {
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
+double Photon::EA_CH() const {
+	double abseta = fabs(getVarF("egn_sceta"));
+	if (abseta < 1.0)
+		return 0.012;
+	else if (abseta < 1.479)
+		return 0.010;
+	else if (abseta < 2.0)
+		return 0.014;
+	else if (abseta < 2.2)
+		return 0.012;
+	else if (abseta < 2.3)
+		return 0.016;
+	else if (abseta < 2.4)
+		return 0.020;
+	else
+		return 0.012;
+}
+
+double Photon::EA_NH() const {
+	double abseta = fabs(getVarF("egn_sceta"));
+	if (abseta < 1.0)
+		return 0.030;
+	else if (abseta < 1.479)
+		return 0.057;
+	else if (abseta < 2.0)
+		return 0.039;
+	else if (abseta < 2.2)
+		return 0.015;
+	else if (abseta < 2.3)
+		return 0.024;
+	else if (abseta < 2.4)
+		return 0.039;
+	else
+		return 0.072;
+}
+
+double Photon::EA_G() const {
+	double abseta = fabs(getVarF("egn_sceta"));
+	if (abseta < 1.0)
+		return 0.148;
+	else if (abseta < 1.479)
+		return 0.130;
+	else if (abseta < 2.0)
+		return 0.112;
+	else if (abseta < 2.2)
+		return 0.216;
+	else if (abseta < 2.3)
+		return 0.262;
+	else if (abseta < 2.4)
+		return 0.260;
+	else
+		return 0.266;
+}
+
+double Photon::pfIsolation_CH(double rho) const {
+	return std::max(0.0, getVarF("gn_chIso03") - rho * EA_CH());
+}
+
+double Photon::pfIsolation_NH(double rho) const {
+	return std::max(0.0, getVarF("gn_nhIso03") - rho * EA_NH());
+}
+
+double Photon::pfIsolation_G(double rho) const {
+	return std::max(0.0, getVarF("gn_gIso03") - rho * EA_G());
+}
+
 bool Photon::isSelected(double rho) {
-	TLorentzVector vec = lorentzVector();
+	if (isInCrack())
+		return false;
+	bool passesID = false;
+	if (isEB()) {
+		if (
+//				!getVarB("egn_isConv") &&
+				getVarF("egn_hoe") < 0.05 &&
+				getVarF("egn_sihih") < 0.011
+			)
+			passesID = true;
+	} else {
+		if (
+//				!getVarB("egn_isConv") &&
+				getVarF("egn_hoe") < 0.05 &&
+				getVarF("egn_sihih") < 0.033
+			)
+			passesID = true;
+	}
 	bool isMedium = (getVarI("gn_idbits") & (0x1 << 1));
-	if ( vec.Pt() > 30 && isEB() && !isInCrack() && isMedium ) {
+	if (passesID != isMedium) {
+		print();
+		throw string("ERROR Photon::isSelected(): ID bit doesn't not match!");
+	}
+
+	double pt = lorentzVector().Pt();
+	bool passesIso = false;
+	if (isEB()) {
+		if (
+				pfIsolation_CH(rho) < 1.5 &&
+				pfIsolation_NH(rho) < 1.0 + 0.04 * pt &&
+				pfIsolation_G(rho) < 0.7 + 0.005 * pt
+			)
+			passesIso = true;
+	} else {
+		if (
+				pfIsolation_CH(rho) < 1.2 &&
+				pfIsolation_NH(rho) < 1.5 + 0.04 * pt &&
+				pfIsolation_G(rho) < 1.0 + 0.005 * pt
+			)
+			passesIso = true;
+	}
+
+	TLorentzVector vec = lorentzVector();
+	if ( isEB() && passesID && passesIso && !getVarB("egn_isConv") && getVarF("egn_r9") < 0.9 ) {
 		return true;
 	}
 	return false;
-
-//	const vector<float> & pt = *ev.getVectorFloatAdr("Photons_PT");
-//	const vector<float> & eta = *ev.getVectorFloatAdr("Photons_superClusterETA");
-//	const vector<float> & r9 = *ev.getVectorFloatAdr("Photons_R9");
-//	const vector<float> & IsoSumOverEt = *ev.getVectorFloatAdr("Photons_IsoSumOverEt");
-//	const vector<float> & IsoSumOverEtWorst = *ev.getVectorFloatAdr("Photons_IsoSumOverEtWorst");
-//	const vector<float> & TrkIsoOverEt = *ev.getVectorFloatAdr("Photons_TrkIsoOverEt");
-//	const vector<float> & sigIeIe = *ev.getVectorFloatAdr("Photons_sigmaIetaIeta");
-//	const vector<float> & hOe = *ev.getVectorFloatAdr("Photons_hadronicOverEm");
-//	const vector<float> & delR = *ev.getVectorFloatAdr("Photons_dREleTrack");
-//	const vector<float> & nLostHits = *ev.getVectorFloatAdr("Photons_nLostHitsEleTrack");
-//
-//	photons.clear();
-//	const unsigned nPhot = pt.size();
-//	for ( unsigned i = 0; i < nPhot; ++i ) {
-//		bool cat1 = (fabs(eta[i]) < 1.4442) && (r9[i] > 0.94);
-//		bool cat2 = (fabs(eta[i]) < 1.4442) && (r9[i] <= 0.94);
-//		bool cat3 = (fabs(eta[i]) > 1.566 && fabs(eta[i]) < 2.5) && (r9[i] > 0.94);
-//		bool cat4 = (fabs(eta[i]) > 1.566 && fabs(eta[i]) < 2.5) && (r9[i] <= 0.94);
-//		
-//		bool passID = false;
-//		if ( pt[i] > 55 ) {
-//			if ( cat1 ) {
-//				if ( IsoSumOverEt[i] < 3.8 &&
-//						IsoSumOverEtWorst[i] < 11.7 &&
-//						TrkIsoOverEt[i] < 3.5 &&
-//						sigIeIe[i] < 0.0106 &&
-//						hOe[i] < 0.082 &&
-//						r9[i] > 0.94 )
-//					passID = true;
-//			}
-//			if ( cat2 ) {
-//				if ( IsoSumOverEt[i] < 2.2 &&
-//						IsoSumOverEtWorst[i] < 3.4 &&
-//						TrkIsoOverEt[i] < 2.2 &&
-//						sigIeIe[i] < 0.0097 &&
-//						hOe[i] < 0.062 &&
-//						r9[i] > 0.36
-//						// && delR[i] < 0.062
-//						)
-//					passID = true;
-//			}
-//			if ( cat3 ) {
-//				if ( IsoSumOverEt[i] < 1.77 &&
-//						IsoSumOverEtWorst[i] < 3.9 &&
-//						TrkIsoOverEt[i] < 2.3 &&
-//						sigIeIe[i] < 0.028 &&
-//						hOe[i] < 0.065 &&
-//						r9[i] > 0.94 )
-//					passID = true;
-//			}
-//			if ( cat4 ) {
-//				if ( IsoSumOverEt[i] < 1.29 &&
-//						IsoSumOverEtWorst[i] < 1.84 &&
-//						TrkIsoOverEt[i] < 1.45 &&
-//						sigIeIe[i] < 0.027 &&
-//						hOe[i] < 0.048 &&
-//						r9[i] > 0.32 )
-//					passID = true;
-//			}
-//		}
-//		bool passEleVeto = true;
-//		if ( delR[i] < 0.5 && nLostHits[i] == 0 )
-//			passEleVeto = false;
-//		if (passID && passEleVeto)
-//			photons.push_back( i );
-//	}
 }

@@ -39,6 +39,8 @@ using std::tuple;
 using std::make_tuple;
 using std::get;
 
+//#define CMSSWENV
+
 void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const Options & opt = Options::getInstance(); 
 	if (type == ELE)
@@ -60,7 +62,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		systVar.clear();
 
 #ifdef CMSSWENV
-	JetCorrectionUncertainty jecUnc("Fall12_V7_MC_Uncertainty_AK5PFchs.txt");
+	JetCorrectionUncertainty jecUnc("Summer13_V4_MC_Uncertainty_AK5PFchs.txt");
 #endif
 
 	string inputDir = opt.checkStringOption("INPUT_DIR");
@@ -114,10 +116,12 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const int * trigPres = ev.getAVA<int>("t_prescale");
 	const float * metPtA = ev.getAVA<float>("met_pt");
 	const float * metPhiA = ev.getAVA<float>("met_phi");
-	const float * rhoP = ev.getSVA<float>("rho25");
+	const float * rhoP = ev.getSVA<float>("rho");
+	const float * rho25P = ev.getSVA<float>("rho25");
 	const int * nvtxP = ev.getSVA<int>("nvtx"); 
 	const int * niP = ev.getSVA<int>("ngenITpu"); 
 	
+#ifdef PRINTEVENTS
 	string eventFileName;
 	if (type == ELE)
 		eventFileName = "events_ele.txt";
@@ -126,7 +130,6 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	else if (type == EMU)
 		eventFileName = "events_emu.txt";
 
-#ifdef PRINTEVENTS
 	EventPrinter evPrint(ev, type, eventFileName);
 	evPrint.readInEvents("diff.txt");
 	evPrint.printElectrons();
@@ -292,6 +295,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 	unordered_set<EventAdr> eventsSet;
 	for ( unsigned long iEvent = 0; iEvent < nentries; iEvent++ ) {
+//		if (iEvent < 6060000)
+//			continue;
 
 		if ( iEvent % 10000 == 0) {
 			cout << string(40, '\b');
@@ -355,7 +360,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 		if (type == EMU && isData) {
 			if ( (trigBits[4] != 1 || trigPres[4] != 1)
-					&& (trigBits[5] != 1 || trigPres[5] != 1)
+				&& (trigBits[5] != 1 || trigPres[5] != 1)
 			   )
 				continue;
 		}
@@ -364,32 +369,37 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		vector<Muon> muons = buildLeptonCollection<Muon, 13>(ev, muVars, addMuVars);
 
 		float rho = *rhoP;
+		float rho25 = *rho25P;
 
 		vector<Electron> looseElectrons;
 		vector<Electron> selectedElectrons;
-		bool selectedFirst = false;
-		bool selectedSecond = false;
-		bool selectedFirstElectron = false;
-		bool selectedFirstMuon = false;
 		for (unsigned j = 0; j < electrons.size(); ++j) {
+			try {
 			TLorentzVector lv = electrons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack()
-					&& electrons[j].passesVetoID()
-					&& electrons[j].pfIsolation(rho, isData) < 0.15
-					) {
+			if (
+					lv.Pt() > 10 &&
+					fabs(lv.Eta()) < 2.5 &&
+					!electrons[j].isInCrack() &&
+					electrons[j].passesVetoID() &&
+					electrons[j].isPFIsolatedLoose(rho25)
+				) {
 				looseElectrons.push_back(electrons[j]);
 			}
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.5 && !electrons[j].isInCrack()
-					&& electrons[j].passesMediumID()
-					&& electrons[j].pfIsolation(rho, isData) < 0.15
-					) {
+
+			if (
+					lv.Pt() > 20 &&
+					fabs(lv.Eta()) < 2.5 &&
+					!electrons[j].isInCrack() &&
+					electrons[j].passesMediumID() &&
+					electrons[j].isPFIsolatedMedium(rho25)
+				) {
 				selectedElectrons.push_back(electrons[j]);
-				if (type == ELE && j == 0)
-					selectedFirst = true;
-				if (type == ELE && j == 1)
-					selectedSecond = true;
-				if (type == EMU && j == 0)
-					selectedFirstElectron = true;
+			}
+			} catch (const string & exc) {
+				cout << exc << endl;
+				cout << "run = " << run << endl;
+				cout << "lumi = " << lumi << endl;
+				cout << "event = " << event << endl;
 			}
 		}
 
@@ -398,22 +408,27 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		vector<Muon> selectedMuons;
 		for (unsigned j = 0; j < muons.size(); ++j) {
 			TLorentzVector lv = muons[j].lorentzVector();
-			if ( lv.Pt() > 10 && fabs(lv.Eta()) < 2.4 && muons[j].isLooseMuon()
-					&& muons[j].isPFIsolatedLoose()
-					) {
+			if (
+					lv.Pt() > 10 &&
+					fabs(lv.Eta()) < 2.4 &&
+					muons[j].isLooseMuon() &&
+					muons[j].isPFIsolatedLoose()
+				) {
 				looseMuons.push_back(muons[j]);
-			} else if ( lv.Pt() > 3 && fabs(lv.Eta()) < 2.4 && muons[j].isSoftMuon() )
+			} else if (
+					lv.Pt() > 3 &&
+					fabs(lv.Eta()) < 2.4 &&
+					muons[j].isSoftMuon()
+				) {
 				softMuons.push_back(muons[j]);
-			if ( lv.Pt() > 20 && fabs(lv.Eta()) < 2.4 && muons[j].isTightMuon()
-					&& muons[j].isPFIsolatedLoose()
-					) {
+			}
+			if (
+					lv.Pt() > 20 &&
+					fabs(lv.Eta()) < 2.4 &&
+					muons[j].isTightMuon() &&
+					muons[j].isPFIsolatedTight()
+				) {
 				selectedMuons.push_back(muons[j]);
-				if (type == MU && j == 0)
-					selectedFirst = true;
-				if (type == MU && j == 1)
-					selectedSecond = true;
-				if (type == EMU && j == 0)
-					selectedFirstMuon = true;
 			}
 		}
 
@@ -443,10 +458,6 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			looseElectrons = tmpElectrons;
 		}
 
-		if ((type == ELE || type == MU) && !(selectedFirst && selectedSecond))
-			continue;
-		if ((type == EMU) && !(selectedFirstElectron && selectedFirstMuon))
-			continue;
 		string leptonsType;
 		Lepton * selectedLeptons[2] = {0};
 		if (type == ELE) {
@@ -530,7 +541,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			mode = 2;
 		TLorentzVector jecCorr;
 
-#ifdef CMSSSWENV
+#ifdef CMSSWENV
 		vector<Jet> jetsAll = selectJetsCMG( ev, jecUnc, &jecCorr, mode );
 #else
 		vector<Jet> jetsAll = selectJetsCMG( ev, &jecCorr, mode );
@@ -550,7 +561,12 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 
 		vector<Jet> selectedJets;
 		for (unsigned i = 0; i < jetsAll.size(); ++i) {
-			if (jetsAll[i].lorentzVector().Pt() > 10 && fabs(jetsAll[i].lorentzVector().Eta()) < 4.7 && jetsAll[i].passesPUID())
+			if (
+					jetsAll[i].lorentzVector().Pt() > 10 &&
+					fabs(jetsAll[i].lorentzVector().Eta()) < 4.7 &&
+					jetsAll[i].passesPUID() &&
+					jetsAll[i].passesPFLooseID()
+				)
 				selectedJets.push_back( jetsAll[i] );
 		}
 		if (type == PHOT) {
@@ -647,7 +663,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
 					return a.lorentzVector().Pt() > b.lorentzVector().Pt();
-					});
+				});
 			TLorentzVector jet1 = hardjets[0].lorentzVector();
 			TLorentzVector jet2 = hardjets[1].lorentzVector();
 			const double maxEta = max( jet1.Eta(), jet2.Eta() );
@@ -700,19 +716,19 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			if (fabs(mcID[hIdx]) == 25)
 				break;
 
-		float Hpx = ev.getAVV<float>("mc_px", hIdx);
-		float Hpy = ev.getAVV<float>("mc_py", hIdx);
-		float Hpz = ev.getAVV<float>("mc_pz", hIdx);
-		float Hen = ev.getAVV<float>("mc_en", hIdx);
-		TLorentzVector higgs;
-		higgs.SetPxPyPzE( Hpx, Hpy, Hpz, Hen );
-		hmass = higgs.M();
-		if (higgsW) {
+		if (higgsW && hIdx < nMC) {
+			float Hpx = ev.getAVV<float>("mc_px", hIdx);
+			float Hpy = ev.getAVV<float>("mc_py", hIdx);
+			float Hpz = ev.getAVV<float>("mc_pz", hIdx);
+			float Hen = ev.getAVV<float>("mc_en", hIdx);
+			TLorentzVector higgs;
+			higgs.SetPxPyPzE( Hpx, Hpy, Hpz, Hen );
+			hmass = higgs.M();
 			hweight = higgsW->Eval(hmass);
 			if (higgsI)
 				hweight *= higgsI->Eval(hmass);
 		} else
-			hweight = 1;
+			hweight = 0;
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
@@ -834,15 +850,15 @@ vector<Jet> selectJetsCMG(const Event & ev, TLorentzVector * diff, unsigned mode
 #endif
 		}
 		Jet tmp;
-		tmp.addFloatVar( jn_px->getName(), jn_px->getVal(i) );
-		tmp.addFloatVar( jn_py->getName(), jn_py->getVal(i) );
-		tmp.addFloatVar( jn_pz->getName(), jn_pz->getVal(i) );
-		tmp.addFloatVar( jn_en->getName(), jn_en->getVal(i) );
+		tmp.addFloatVar( jn_px->getName(), jet.Px() );
+		tmp.addFloatVar( jn_py->getName(), jet.Py() );
+		tmp.addFloatVar( jn_pz->getName(), jet.Pz() );
+		tmp.addFloatVar( jn_en->getName(), jet.E() );
+		tmp.addIntVar( jn_idbits->getName(), jn_idbits->getVal(i) );
 		tmp.addFloatVar( jn_jp->getName(), jn_jp->getVal(i) );
 		TLorentzVector genJet( jn_genpx->getVal(i), jn_genpy->getVal(i), jn_genpz->getVal(i), jn_genen->getVal(i) );
 		tmp.addFloatVar( "jn_genpt", genJet.Pt() );
 
-		tmp.addIntVar( jn_idbits->getName(), jn_idbits->getVal(i) );
 		jets.push_back(tmp);
 	}
 	return jets;
@@ -889,9 +905,7 @@ Jet smearedJet(const Jet & origJet, unsigned mode) {
 	else if (mode == 2)
 		ptSF -= ptSF_err;
 	
-	//gRandom->SetSeed(123456);
-	//ptSF = max(0., (origJet.genpt + gRandom->Gaus(ptSF, ptSF_err) * (pt - origJet.genpt))) / pt;  //deterministic version
-	ptSF = max(0., (origJet.getVarF("genpt") + ptSF * (pt - origJet.getVarF("genpt")))) / pt;  //deterministic version
+	ptSF = max(0., (origJet.getVarF("jn_genpt") + ptSF * (pt - origJet.getVarF("jn_genpt")))) / pt;  //deterministic version
 	if (ptSF <= 0)
 		return origJet;
 
@@ -906,9 +920,6 @@ Jet smearedJet(const Jet & origJet, unsigned mode) {
 	smearedJet.addFloatVar( "jn_py", py );
 	smearedJet.addFloatVar( "jn_pz", pz );
 	smearedJet.addFloatVar( "jn_en", en );
-//	smearedJet.addFloatVar( "jn_jp", origJet.getVarF("jn_jp") );
-//	smearedJet.addFloatVar( "jn_genpt", origJet.getVarF("jn_genpt") );
-//	smearedJet.addIntVar( "jn_idbits", origJet.getVarI("jn_idbits") );
 	return smearedJet;
 }
 
@@ -919,23 +930,20 @@ vector<Photon> selectPhotonsCMG(const Event & ev) {
 	const ArrayVariableContainer<float> * gn_py = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_py"));
 	const ArrayVariableContainer<float> * gn_pz = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_pz"));
 	const ArrayVariableContainer<float> * gn_en = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_en"));
-//	const ArrayVariableContainer<float> * g_iso1 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_iso1"));
-//	const ArrayVariableContainer<float> * g_iso2 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_iso2"));
-//	const ArrayVariableContainer<float> * g_iso3 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_iso3"));
-//	const ArrayVariableContainer<float> * g_sihih = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_sihih"));
-//	const ArrayVariableContainer<float> * g_sipip = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_sipip"));
-//	const ArrayVariableContainer<float> * g_r9 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_r9"));
-//	const ArrayVariableContainer<float> * g_hoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_hoe"));
-//	const ArrayVariableContainer<float> * g_htoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_htoe"));
-//	const ArrayVariableContainer<float> * g_corren = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_corren"));
-//	const ArrayVariableContainer<float> * g_correnerr = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_correnerr"));
 	const ArrayVariableContainer<int> * gn_idbits = dynamic_cast<const ArrayVariableContainer<int> *>(ev.findVariable("gn_idbits"));
+	const ArrayVariableContainer<float> * gn_chIso03 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_chIso03"));
+	const ArrayVariableContainer<float> * gn_nhIso03 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_nhIso03"));
+	const ArrayVariableContainer<float> * gn_gIso03 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("gn_gIso03"));
 
 	const ArrayVariableContainer<float> * egn_sceta = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("egn_sceta"));
-
-	vector<Photon> photons;
+	const ArrayVariableContainer<bool> * egn_isConv = dynamic_cast<const ArrayVariableContainer<bool> *>(ev.findVariable("egn_isConv"));
+	const ArrayVariableContainer<float> * egn_hoe = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("egn_hoe"));
+	const ArrayVariableContainer<float> * egn_sihih = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("egn_sihih"));
+	const ArrayVariableContainer<float> * egn_r9 = dynamic_cast<const ArrayVariableContainer<float> *>(ev.findVariable("egn_r9"));
 
 	const ArrayVariableContainer<int> * pidC = dynamic_cast<const ArrayVariableContainer<int> *>(ev.findVariable("gn_pid"));
+
+	vector<Photon> photons;
 	for ( int i = 0; i < gn->getVal(); ++i ) {
 		Photon tmpPhoton;
 
@@ -943,12 +951,18 @@ vector<Photon> selectPhotonsCMG(const Event & ev) {
 		tmpPhoton.addFloatVar( gn_py->getName(), gn_py->getVal(i) );
 		tmpPhoton.addFloatVar( gn_pz->getName(), gn_pz->getVal(i) );
 		tmpPhoton.addFloatVar( gn_en->getName(), gn_en->getVal(i) );
-
 		tmpPhoton.addIntVar( gn_idbits->getName(), gn_idbits->getVal(i) );
+		tmpPhoton.addFloatVar( gn_chIso03->getName(), gn_chIso03->getVal(i) );
+		tmpPhoton.addFloatVar( gn_nhIso03->getName(), gn_nhIso03->getVal(i) );
+		tmpPhoton.addFloatVar( gn_gIso03->getName(), gn_gIso03->getVal(i) );
 
 		int pid = pidC->getVal(i);
 
 		tmpPhoton.addFloatVar( egn_sceta->getName(), egn_sceta->getVal(pid) );
+		tmpPhoton.addBoolVar( egn_isConv->getName(), !egn_isConv->getVal(pid) );
+		tmpPhoton.addFloatVar( egn_hoe->getName(), egn_hoe->getVal(pid) );
+		tmpPhoton.addFloatVar( egn_sihih->getName(), egn_sihih->getVal(pid) );
+		tmpPhoton.addFloatVar( egn_r9->getName(), egn_r9->getVal(pid) );
 
 		photons.push_back(tmpPhoton);
 	}

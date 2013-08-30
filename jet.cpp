@@ -6,5 +6,9 @@ TLorentzVector Jet::lorentzVector() const {
 }
 
 bool Jet::passesPUID() const {
-	return (getVarI("jn_idbits") & (0x1 << 10));
+	return (getVarI("jn_idbits") & (0x1 << 9));
+}
+
+bool Jet::passesPFLooseID() const {
+	return (getVarI("jn_idbits") & (0x1 << 0));
 }

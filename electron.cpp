@@ -19,7 +19,7 @@ bool Electron::isInCrack() const {
 	return (abseta > 1.4442 && abseta < 1.566);
 }
 
-double Electron::effAreaDATA() const {
+double Electron::EA() const {
 	double abseta = fabs(getVarF("egn_sceta"));
 	if (abseta < 1.0)
 		return 0.13;
@@ -37,23 +37,23 @@ double Electron::effAreaDATA() const {
 		return 0.14;
 }
 
-double Electron::pfIsolation(double rho, bool isData) const {
+double Electron::pfIsolation(double rho) const {
 	double rhoPr = max(rho, 0.0);
-	double nIso = max(getVarF("ln_nhIso03") + getVarF("ln_gIso03") - rhoPr * effAreaDATA(), 0.0);
+	double nIso = max(getVarF("ln_nhIso03") + getVarF("ln_gIso03") - rhoPr * EA(), 0.0);
 	return (nIso + getVarF("ln_chIso03")) / lorentzVector().Pt();
 }
 
-bool Electron::isPFIsolatedVeto(double rho, bool isData) const {
-	double pfIsol = pfIsolation(rho, isData);
+bool Electron::isPFIsolatedVeto(double rho) const {
+	double pfIsol = pfIsolation(rho);
 	if (isEB())
 		return pfIsol < 0.15;
 	else
 		return pfIsol < 0.15;
 }
 
-bool Electron::isPFIsolatedLoose(double rho, bool isData) const {
+bool Electron::isPFIsolatedLoose(double rho) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho, isData);
+	double pfIsol = pfIsolation(rho);
 	if (isEB())
 		return pfIsol < 0.15;
 	else {
@@ -64,9 +64,9 @@ bool Electron::isPFIsolatedLoose(double rho, bool isData) const {
 	}
 }
 
-bool Electron::isPFIsolatedMedium(double rho, bool isData) const {
+bool Electron::isPFIsolatedMedium(double rho) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho, isData);
+	double pfIsol = pfIsolation(rho);
 	if (isEB())
 		return pfIsol < 0.15;
 	else {
@@ -77,9 +77,9 @@ bool Electron::isPFIsolatedMedium(double rho, bool isData) const {
 	}
 }
 
-bool Electron::isPFIsolatedTight(double rho, bool isData) const {
+bool Electron::isPFIsolatedTight(double rho) const {
 	TLorentzVector lv = lorentzVector();
-	double pfIsol = pfIsolation(rho, isData);
+	double pfIsol = pfIsolation(rho);
 	if (isEB())
 		return pfIsol < 0.10;
 	else {

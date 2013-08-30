@@ -14,7 +14,12 @@ class Photon : public Lepton {
 		bool isEB() const;
 		bool isEE() const;
 		bool isInCrack() const;
-		double eta() const;
+		double EA_CH() const;
+		double EA_NH() const;
+		double EA_G() const;
+		double pfIsolation_CH(double rho) const;
+		double pfIsolation_NH(double rho) const;
+		double pfIsolation_G(double rho) const;
 		bool isSelected(double rho);
 };
 
