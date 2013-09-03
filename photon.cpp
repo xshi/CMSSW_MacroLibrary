@@ -138,8 +138,20 @@ bool Photon::isSelected(double rho) {
 	}
 
 	TLorentzVector vec = lorentzVector();
-	if ( isEB() && passesID && passesIso && !getVarB("egn_isConv") && getVarF("egn_r9") < 0.9 ) {
+	if ( isEB() && passesID && passesIso && !getVarB("egn_isConv") && getVarF("egn_r9") > 0.9 ) {
 		return true;
 	}
+
+	if (!isEB())
+		cout << "Fails isEB()" << endl;
+	else if (!passesID)
+		cout << "Fails ID" << endl;
+	else if (!passesIso)
+		cout << "Fails ISO" << endl;
+	else if (getVarB("egn_isConv"))
+		cout << "Fails conversion veto" << endl;
+	else if (getVarF("egn_r9") < 0.9)
+		cout << "Fails R9 cut" << endl;
+
 	return false;
 }

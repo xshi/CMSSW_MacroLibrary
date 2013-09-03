@@ -443,6 +443,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			if (photons[i].isSelected(rho) && photons[i].lorentzVector().Pt() > 40)
 				selectedPhotons.push_back( photons[i] );
 		}
+		cout << selectedPhotons.size() << endl;
+
 
 		if (type == PHOT) {
 			vector<Electron> tmpElectrons;
@@ -836,8 +838,10 @@ vector<Jet> selectJetsCMG(const Event & ev, TLorentzVector * diff, unsigned mode
 			jecUnc.setJetEta(jet.Eta());
 			jecUnc.setJetPt(jet.Pt());
 			double sF = fabs(jecUnc.getUncertainty(true));
-			if ( sF > 0.3 )
+			if ( sF > 0.3 ) {
 				cout << setw(10) << jet.Pt() << setw(10) << jet.Eta() << setw(10) << sF << endl;	
+				throw string("ERROR!");	
+			}
 			if (mode == 1)
 				sF = 1 + sF;
 			else
@@ -959,7 +963,7 @@ vector<Photon> selectPhotonsCMG(const Event & ev) {
 		int pid = pidC->getVal(i);
 
 		tmpPhoton.addFloatVar( egn_sceta->getName(), egn_sceta->getVal(pid) );
-		tmpPhoton.addBoolVar( egn_isConv->getName(), !egn_isConv->getVal(pid) );
+		tmpPhoton.addBoolVar( egn_isConv->getName(), egn_isConv->getVal(pid) );
 		tmpPhoton.addFloatVar( egn_hoe->getName(), egn_hoe->getVal(pid) );
 		tmpPhoton.addFloatVar( egn_sihih->getName(), egn_sihih->getVal(pid) );
 		tmpPhoton.addFloatVar( egn_r9->getName(), egn_r9->getVal(pid) );

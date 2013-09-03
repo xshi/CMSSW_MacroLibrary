@@ -94,7 +94,7 @@ std::vector<T> buildLeptonCollection( const Event & ev,
 	return leptons;
 }
 
-#define CMSSWENV
+//#define CMSSWENV
 #ifdef CMSSWENV
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
