@@ -10,6 +10,7 @@
 
 enum PreselType { ELE, MU, EMU, PHOT }; 
 
+class Lepton;
 class Electron;
 class ElectronVariables;
 class Event;
@@ -94,16 +95,16 @@ std::vector<T> buildLeptonCollection( const Event & ev,
 	return leptons;
 }
 
-//#define CMSSWENV
+#define CMSSWENV
 #ifdef CMSSWENV
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
-std::vector<Jet> selectJetsCMG(const Event & ev, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff = 0, unsigned mode = 0, double ptMin = 10, double etaMax = 4.7);
+std::vector<Jet> selectJetsCMG(const Event & ev, const std::vector<Lepton> & leptons, JetCorrectionUncertainty  & jecUnc, TLorentzVector * diff = 0, unsigned mode = 0, double ptMin = 10, double etaMax = 4.7);
 
 #else
 
-std::vector<Jet> selectJetsCMG(const Event & ev, TLorentzVector * diff = 0, unsigned mode = 0, double ptMin = 10, double etaMax = 4.7);
+std::vector<Jet> selectJetsCMG(const Event & ev, const std::vector<Lepton> & leptons, TLorentzVector * diff = 0, unsigned mode = 0, double ptMin = 10, double etaMax = 4.7);
 
 #endif
 

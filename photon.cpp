@@ -95,29 +95,27 @@ double Photon::pfIsolation_G(double rho) const {
 }
 
 bool Photon::isSelected(double rho) {
-	if (isInCrack())
-		return false;
-	bool passesID = false;
-	if (isEB()) {
-		if (
+//	bool passesID = false;
+//	if (isEB()) {
+//		if (
 //				!getVarB("egn_isConv") &&
-				getVarF("egn_hoe") < 0.05 &&
-				getVarF("egn_sihih") < 0.011
-			)
-			passesID = true;
-	} else {
-		if (
+//				getVarF("egn_hoe") < 0.05 &&
+//				getVarF("egn_sihih") < 0.011
+//			)
+//			passesID = true;
+//	} else {
+//		if (
 //				!getVarB("egn_isConv") &&
-				getVarF("egn_hoe") < 0.05 &&
-				getVarF("egn_sihih") < 0.033
-			)
-			passesID = true;
-	}
+//				getVarF("egn_hoe") < 0.05 &&
+//				getVarF("egn_sihih") < 0.033
+//			)
+//			passesID = true;
+//	}
 	bool isMedium = (getVarI("gn_idbits") & (0x1 << 1));
-	if (passesID != isMedium) {
-		print();
-		throw string("ERROR Photon::isSelected(): ID bit doesn't not match!");
-	}
+//	if (passesID != isMedium) {
+//		print();
+//		throw string("ERROR Photon::isSelected(): ID bit doesn't not match!");
+//	}
 
 	double pt = lorentzVector().Pt();
 	bool passesIso = false;
@@ -137,21 +135,20 @@ bool Photon::isSelected(double rho) {
 			passesIso = true;
 	}
 
-	TLorentzVector vec = lorentzVector();
-	if ( isEB() && passesID && passesIso && !getVarB("egn_isConv") && getVarF("egn_r9") > 0.9 ) {
+	if ( isEB() && !isInCrack() && isMedium && passesIso && !getVarB("egn_isConv") && getVarF("egn_r9") > 0.9 ) {
 		return true;
 	}
 
-	if (!isEB())
-		cout << "Fails isEB()" << endl;
-	else if (!passesID)
-		cout << "Fails ID" << endl;
-	else if (!passesIso)
-		cout << "Fails ISO" << endl;
-	else if (getVarB("egn_isConv"))
-		cout << "Fails conversion veto" << endl;
-	else if (getVarF("egn_r9") < 0.9)
-		cout << "Fails R9 cut" << endl;
-
+//	if (!isEB())
+//		cout << "Fails isEB()" << endl;
+//	else if (!passesID)
+//		cout << "Fails ID" << endl;
+//	else if (!passesIso)
+//		cout << "Fails ISO" << endl;
+//	else if (getVarB("egn_isConv"))
+//		cout << "Fails conversion veto" << endl;
+//	else if (getVarF("egn_r9") < 0.9)
+//		cout << "Fails R9 cut" << endl;
+//
 	return false;
 }
