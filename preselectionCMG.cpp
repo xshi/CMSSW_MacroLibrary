@@ -39,8 +39,6 @@ using std::tuple;
 using std::make_tuple;
 using std::get;
 
-//#define CMSSWENV
-
 void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 	const Options & opt = Options::getInstance(); 
 	if (type == ELE)
