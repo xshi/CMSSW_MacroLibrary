@@ -537,7 +537,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		}
 
 		TLorentzVector met;
-		met.SetPtEtaPhiM(metPtA[1], 0.0, metPhiA[1], 0.0);
+		met.SetPtEtaPhiM(metPtA[0], 0.0, metPhiA[0], 0.0);
 		TLorentzVector clusteredFlux;
 
 		unsigned mode = 0;
@@ -647,8 +647,8 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		}
 		nhardjet = hardjets.size();
 		nsoftjet = softjets.size();
-		if ( type == PHOT && nsoftjet == 0 )
-			continue;
+//		if ( type == PHOT && nsoftjet == 0 )
+//			continue;
 
 		if (nhardjet > 1) {
 			sort(hardjets.begin(), hardjets.end(), [](const Jet & a, const Jet & b) {
@@ -699,14 +699,16 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 		else
 			ni = *niP;
 
-		const int nMC = ev.getSVV<int>("mcn");
-		const int * mcID = ev.getAVA<int>("mc_id");
-		int hIdx = 0;
-		for (; hIdx < nMC; ++hIdx)
-			if (fabs(mcID[hIdx]) == 25)
-				break;
+		if (isSignal) {
+			const int nMC = ev.getSVV<int>("mcn");
+			const int * mcID = ev.getAVA<int>("mc_id");
+			int hIdx = 0;
+			for (; hIdx < nMC; ++hIdx)
+				if (fabs(mcID[hIdx]) == 25)
+					break;
+			if (hIdx == nMC)
+				throw string("ERROR: Higgs not found in signal sample!");
 
-		if (higgsW && hIdx < nMC) {
 			float Hpx = ev.getAVV<float>("mc_px", hIdx);
 			float Hpy = ev.getAVV<float>("mc_py", hIdx);
 			float Hpz = ev.getAVV<float>("mc_pz", hIdx);
@@ -714,11 +716,14 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			TLorentzVector higgs;
 			higgs.SetPxPyPzE( Hpx, Hpy, Hpz, Hen );
 			hmass = higgs.M();
-			hweight = higgsW->Eval(hmass);
-			if (higgsI)
-				hweight *= higgsI->Eval(hmass);
-		} else
-			hweight = 1;
+
+			if (higgsW) {
+				hweight = higgsW->Eval(hmass);
+				if (higgsI)
+					hweight *= higgsI->Eval(hmass);
+			} else
+				hweight = 1;
+		}
 
 		if ( opt.checkBoolOption("ADDITIONAL_LEPTON_VETO") && (type == ELE || type == MU || type == EMU) && ((nele + nmu + nsoftmu) > 2) )
 			continue;
@@ -733,7 +738,7 @@ void LeptonPreselectionCMG( PreselType type, RooWorkspace * w ) {
 			continue;
 		if ( opt.checkBoolOption("WIDE_ZMASS_CUT") && (type == ELE || type == MU) && (zmass < 76.0 || zmass > 106.0))
 			continue;
-		if ( opt.checkBoolOption("BTAG_CUT") && ( maxJetBTag > 0.275) )
+		if ( opt.checkBoolOption("BTAG_CUT") && ( maxJetBTag > 0.264) )
 			continue;
 		if ( opt.checkBoolOption("DPHI_CUT") && ( minDeltaPhiJetMet < 0.5) )
 			continue;

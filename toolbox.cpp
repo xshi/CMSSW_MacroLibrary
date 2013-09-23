@@ -146,8 +146,8 @@ double ptFuncIntegral(double zpt, double a, double b) {
 unsigned evCategory(int nhardjet, int nsoftjet, double delEta, double mjj, bool isPhotonSample) {
 	bool vbf = (nhardjet >= 2) && (delEta > 4.0) && (mjj > 500.0); 
 	bool cat1 = (nhardjet == 0);
-	if (isPhotonSample)
-		cat1 = cat1 && (nsoftjet > 0);
+//	if (isPhotonSample)
+//		cat1 = cat1 && (nsoftjet > 0);
 	bool cat2 = (nhardjet >= 1) && !vbf;
 	if ( cat1 )
 		return 1;
